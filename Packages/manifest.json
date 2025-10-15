@@ -1,9 +1,11 @@
 {
   "dependencies": {
+    "com.google.external-dependency-manager": "1.2.186",
     "com.unity.collab-proxy": "2.10.0",
     "com.unity.ide.rider": "3.0.38",
     "com.unity.ide.visualstudio": "2.0.23",
     "com.unity.inputsystem": "1.14.2",
+    "com.unity.purchasing": "5.0.2",
     "com.unity.render-pipelines.universal": "17.2.0",
     "com.unity.test-framework": "1.6.0",
     "com.unity.ugui": "2.0.0",
@@ -34,5 +36,14 @@
     "com.unity.modules.unitywebrequestwww": "1.0.0",
     "com.unity.modules.video": "1.0.0",
     "com.unity.modules.wind": "1.0.0"
-  }
+  },
+  "scopedRegistries": [
+    {
+      "name": "package.openupm.com",
+      "url": "https://package.openupm.com",
+      "scopes": [
+        "com.google.external-dependency-manager"
+      ]
+    }
+  ]
 }
