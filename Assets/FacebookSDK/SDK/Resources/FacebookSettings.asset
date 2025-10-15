@@ -24,7 +24,7 @@ MonoBehaviour:
   status: 1
   xfbml: 0
   frictionlessRequests: 1
-  androidKeystorePath: 
+  androidKeystorePath: E:\Sample Projects\Mobile Game Development Kit\Mobile-Game-Development-Kit\Keystores\Key.keystore
   iosURLSuffix: 
   appLinkSchemes:
   - list: []
