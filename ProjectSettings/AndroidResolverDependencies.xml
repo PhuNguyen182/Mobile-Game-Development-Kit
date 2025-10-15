@@ -16,6 +16,7 @@
     <package>com.facebook.android:facebook-share:[18.0.0,19)</package>
     <package>com.google.android.gms:play-services-ads:24.5.0</package>
     <package>com.google.android.gms:play-services-base:18.7.2</package>
+    <package>com.google.android.ump:user-messaging-platform:2.1.0</package>
     <package>com.google.android.ump:user-messaging-platform:3.2.0</package>
     <package>com.google.firebase:firebase-analytics:23.0.0</package>
     <package>com.google.firebase:firebase-analytics-unity:13.3.0</package>

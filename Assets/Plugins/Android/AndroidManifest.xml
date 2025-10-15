@@ -4,14 +4,15 @@
     <!-- The MessagingUnityPlayerActivity is a class that extends
          UnityPlayerActivity to work around a known issue when receiving
          notification data payloads in the background. -->
-    <activity android:name="com.google.firebase.MessagingUnityPlayerActivity" android:theme="@style/UnityThemeSelector" android:configChanges="fontScale|keyboard|keyboardHidden|locale|mnc|mcc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|uiMode|touchscreen">
+    <activity android:name="com.google.firebase.MessagingUnityPlayerActivity" android:theme="@style/BaseUnityGameActivityTheme" android:configChanges="fontScale|keyboard|keyboardHidden|locale|mnc|mcc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|uiMode|touchscreen">
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.LAUNCHER" />
       </intent-filter>
       <meta-data android:name="unityplayer.UnityActivity" android:value="true" />
     </activity>
-    <service android:name="com.google.firebase.messaging.MessageForwardingService" android:permission="android.permission.BIND_JOB_SERVICE" android:exported="true"></service>
+    <service android:name="com.google.firebase.messaging.MessageForwardingService" android:permission="android.permission.BIND_JOB_SERVICE" android:exported="true">
+    </service>
     <activity android:name="com.facebook.unity.FBUnityLoginActivity" android:configChanges="fontScale|keyboard|keyboardHidden|locale|mnc|mcc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|uiMode|touchscreen" android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen" />
     <activity android:name="com.facebook.unity.FBUnityDialogsActivity" android:configChanges="fontScale|keyboard|keyboardHidden|locale|mnc|mcc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|uiMode|touchscreen" android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen" />
     <activity android:name="com.facebook.unity.FBUnityGamingServicesFriendFinderActivity" android:configChanges="fontScale|keyboard|keyboardHidden|locale|mnc|mcc|navigation|orientation|screenLayout|screenSize|smallestScreenSize|uiMode|touchscreen" android:theme="@android:style/Theme.Translucent.NoTitleBar.Fullscreen" />
@@ -23,5 +24,13 @@
     <meta-data android:name="com.facebook.sdk.AutoLogAppEventsEnabled" android:value="true" />
     <meta-data android:name="com.facebook.sdk.AdvertiserIDCollectionEnabled" android:value="true" />
     <provider android:name="com.facebook.FacebookContentProvider" android:authorities="com.facebook.app.FacebookContentProvider719912130533721" android:exported="true" />
+    <receiver android:name="com.adjust.sdk.AdjustReferrerReceiver" android:permission="android.permission.INSTALL_PACKAGES" android:exported="true">
+      <intent-filter>
+        <action android:name="com.android.vending.INSTALL_REFERRER" />
+      </intent-filter>
+    </receiver>
   </application>
+  <uses-permission android:name="android.permission.INTERNET" />
+  <uses-permission android:name="com.google.android.finsky.permission.BIND_GET_INSTALL_REFERRER_SERVICE" />
+  <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
 </manifest>
