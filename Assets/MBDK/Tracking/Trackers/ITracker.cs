@@ -7,7 +7,9 @@ namespace MBDK.Tracking.Trackers
 {
     public interface ITracker
     {
+        public TrackerType TrackerType { get; }
         public void InjectDependencies(ITrackerManager trackerManager);
+        public void Start();
         public void LogEvent(string eventName);
         public void LogEvent(string eventName, string parameterName, int parameterValue);
         public void LogEvent(string eventName, string parameterName, long parameterValue);

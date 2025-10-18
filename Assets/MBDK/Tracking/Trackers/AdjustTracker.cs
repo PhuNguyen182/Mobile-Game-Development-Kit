@@ -8,6 +8,7 @@ namespace MBDK.Tracking.Trackers
 {
     public class AdjustTracker : ITracker, IDisposable
     {
+        private bool _isDisposed;
         private readonly AdjustConfig _adjustConfig;
         
         public event Action<string> OnGetAdIdEvent;
@@ -39,15 +40,20 @@ namespace MBDK.Tracking.Trackers
                 this._adjustConfig.SetUrlStrategy(config.urlStrategyDomains, config.shouldUseSubdomains,
                     config.isDataResidency);
             }
-
-            Adjust.InitSdk(this._adjustConfig);
-            Adjust.GetAdid(OnGetAdId);
-            Adjust.GetAttribution(OnGetAdjustAttribute);
         }
+
+        public TrackerType TrackerType => TrackerType.Adjust;
 
         public void InjectDependencies(ITrackerManager trackerManager)
         {
             
+        }
+
+        public void Start()
+        {
+            Adjust.InitSdk(this._adjustConfig);
+            Adjust.GetAdid(OnGetAdId);
+            Adjust.GetAttribution(OnGetAdjustAttribute);
         }
 
         public void LogEvent(string eventToken)
@@ -95,7 +101,7 @@ namespace MBDK.Tracking.Trackers
             this.OnAdjustAttributionChanged?.Invoke(attribution);
         }
         
-        public void Dispose()
+        private void ReleaseUnmanagedResources()
         {
             this.OnGetAdIdEvent = null;
             this.DeferredDeeplinkTrigger = null;
@@ -103,6 +109,30 @@ namespace MBDK.Tracking.Trackers
             this.OnAdjustAttributionChanged = null;
             this._adjustConfig.DeferredDeeplinkDelegate = null;
             this._adjustConfig.AttributionChangedDelegate = null;
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (this._isDisposed)
+                return;
+            
+            if (disposing)
+            {
+                ReleaseUnmanagedResources();    
+            }
+            
+            this._isDisposed = true;
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+        }
+
+        ~AdjustTracker()
+        {
+            Dispose(false);
         }
     }
 }

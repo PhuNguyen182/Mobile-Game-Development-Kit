@@ -10,8 +10,15 @@ namespace MBDK.Tracking.Trackers
     public class FirebaseTracker : ITracker
     {
         private const string TrackerTag = "FirebaseTracker";
+        
+        public TrackerType TrackerType => TrackerType.Firebase;
 
         public void InjectDependencies(ITrackerManager trackerManager)
+        {
+            
+        }
+
+        public void Start()
         {
             
         }
@@ -73,6 +80,12 @@ namespace MBDK.Tracking.Trackers
                 Debug.Log(
                     $"[{TrackerTag}] Tracked event: {eventName}, parameter: {parameterName}, value: {parameterValue}");
             }
+        }
+
+        public void SetUserProperty(string propertyName, string propertyValue)
+        {
+            FirebaseAnalytics.SetUserProperty(propertyName, propertyValue);
+            Debug.Log($"[{TrackerTag}] Set user property: {propertyName}, value: {propertyValue}");
         }
 
         private static Parameter ConvertToFirebaseParameter(ITrackerParameter trackerParameter)
