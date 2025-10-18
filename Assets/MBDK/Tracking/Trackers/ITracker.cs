@@ -1,10 +1,13 @@
 using System.Collections.Generic;
+using MBDK.Tracking.Manager;
 using MBDK.Tracking.TrackingParameterBuilder.Builder;
+using MBDK.Tracking.TrackingParameterBuilder.Interfaces;
 
 namespace MBDK.Tracking.Trackers
 {
     public interface ITracker
     {
+        public void InjectDependencies(ITrackerManager trackerManager);
         public void LogEvent(string eventName);
         public void LogEvent(string eventName, string parameterName, int parameterValue);
         public void LogEvent(string eventName, string parameterName, long parameterValue);
