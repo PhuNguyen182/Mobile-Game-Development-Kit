@@ -21,13 +21,10 @@ namespace MBDK.InAppPurchases
         public string GetProductPrice(string productId)
         {
             var product = GetProduct(productId);
-            if (product == null)
-            {
-                var productConfig = _productConfigData.GetProductConfig(productId);
-                return productConfig.defaultPrice;
-            }
-        
-            return product.metadata.localizedPriceString;
+            if (product != null) return product.metadata.localizedPriceString;
+            var productConfig = _productConfigData.GetProductConfig(productId);
+            return productConfig.defaultPrice;
+
         }
     }
 }

@@ -13,7 +13,7 @@ namespace MBDK.InAppPurchases
         {
             foreach (var productConfig in productConfigs)
             {
-                if (productConfig.GetProductID() == productId)
+                if (string.CompareOrdinal(productConfig.GetProductID(), productId) == 0)
                 {
                     return productConfig;
                 }
