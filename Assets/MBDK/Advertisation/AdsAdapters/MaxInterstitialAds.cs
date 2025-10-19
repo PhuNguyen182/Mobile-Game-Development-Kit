@@ -24,11 +24,11 @@ public class MaxInterstitialAds
         this.LoadInterstitial();
     }
 
-    public void ShowInterstitialAds()
+    public void ShowInterstitialAds(string placement = null)
     {
         if (MaxSdkUnityEditor.IsInterstitialReady(this._interstitialUnitId))
         {
-            Debug.Log($"[{MaxInterstitialLogTag}] Show interstitial ads: {this._interstitialUnitId}");
+            Debug.Log($"[{MaxInterstitialLogTag}] Show interstitial ads: {this._interstitialUnitId} at placement: {placement}");
             MaxSdkUnityEditor.ShowInterstitial(this._interstitialUnitId);
         }
         else

@@ -1,6 +1,6 @@
 using System;
 
-namespace MBDK.Advertisation
+namespace MBDK.Advertisation.AdsManager
 {
     public interface IAdsManager
     {

@@ -6,8 +6,9 @@ public class MaxRewardedAds
 {
     private const string MaxRewardedLogTag = "MaxRewardedAds";
 
-    private readonly string _rewardedUnitId;
     private int _retryAttempt;
+    private Action _onReceivedRewardAfterAdShow;
+    private readonly string _rewardedUnitId;
 
     public MaxRewardedAds(string rewardedUnitId)
     {
@@ -25,12 +26,13 @@ public class MaxRewardedAds
         this.LoadRewardedAd();
     }
 
-    public void ShowRewardedAds()
+    public void ShowRewardedAds(string placement = null, Action onReceivedRewardAfterAdShow = null)
     {
         if (MaxSdkUnityEditor.IsRewardedAdReady(_rewardedUnitId))
         {
-            Debug.Log($"[{MaxRewardedLogTag}] Show rewarded ad: {this._rewardedUnitId}");
+            Debug.Log($"[{MaxRewardedLogTag}] Show rewarded ad: {this._rewardedUnitId} at placement: {placement}");
             MaxSdkUnityEditor.ShowRewardedAd(_rewardedUnitId);
+            this._onReceivedRewardAfterAdShow = onReceivedRewardAfterAdShow;
         }
         else
         {
@@ -96,6 +98,8 @@ public class MaxRewardedAds
     {
         Debug.Log(
             $"[{MaxRewardedLogTag}] Rewarded ad received reward with id {adUnitId} at placement {adInfo.Placement}.\nReward: [label: {reward.Label}, amount: {reward.Amount}]");
+        this._onReceivedRewardAfterAdShow?.Invoke();
+        this._onReceivedRewardAfterAdShow = null;
     }
 
     private void OnRewardedAdRevenuePaidEvent(string adUnitId, MaxSdkBase.AdInfo adInfo)
