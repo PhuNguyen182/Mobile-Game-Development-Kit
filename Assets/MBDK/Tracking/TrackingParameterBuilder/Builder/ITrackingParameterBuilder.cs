@@ -1,15 +1,12 @@
-using System.Collections.Generic;
+using System;
 using MBDK.Tracking.TrackingParameterBuilder.CustomParameters;
-using MBDK.Tracking.TrackingParameterBuilder.Interfaces;
+using Firebase.Analytics;
 
 namespace MBDK.Tracking.TrackingParameterBuilder.Builder
 {
-    public interface ITrackingParameterBuilder
+    public interface ITrackingParameterBuilder : IDisposable
     {
-        public int ParameterCount { get; }
-        
-        public List<ITrackerParameter> GetParameters();
-        public void AddParameter(ITrackerParameter parameter);
+        public Parameter[] GetParameters();
         public void AddParameter(IntTrackingParameter parameter);
         public void AddParameter(LongTrackingParameter parameter);
         public void AddParameter(FloatTrackingParameter parameter);
