@@ -40,7 +40,7 @@ namespace MBDK.Advertisement.AdsManager
             if (!this._adsCooldownController.CanShowAds())
                 return;
             
-            switch (_adsServiceConfigData.bannerAdsServiceType)
+            switch (_adsServiceConfigData.interstitialAdsServiceType)
             {
                 case AdsServiceType.Max:
                     this._maxAdsService.ShowInterstitialAds(placement);
@@ -55,7 +55,7 @@ namespace MBDK.Advertisement.AdsManager
 
         public void ShowRewardedAds(string placement = null, Action onReceivedRewardAfterAdShow = null)
         {
-            switch (_adsServiceConfigData.bannerAdsServiceType)
+            switch (_adsServiceConfigData.rewardedAdsServiceType)
             {
                 case AdsServiceType.Max:
                     this._maxAdsService.ShowRewardedAds(placement, onReceivedRewardAfterAdShow);
