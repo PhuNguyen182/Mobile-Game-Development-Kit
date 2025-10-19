@@ -1,11 +1,11 @@
 using System;
 
-namespace MBDK.Advertisation.AdsManager
+namespace MBDK.Advertisement.AdsManager
 {
     public interface IAdsManager
     {
         public void ToggleBannerAds(bool shouldShowAds);
-        public void ShowInterstitialAds(string placement);
-        public void ShowRewardedAds(string placement, Action onRewarded = null);
+        public void ShowInterstitialAds(string placement = null);
+        public void ShowRewardedAds(string placement = null, Action onReceivedRewardAfterAdShow = null);
     }
 }

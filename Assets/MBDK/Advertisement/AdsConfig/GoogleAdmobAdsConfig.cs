@@ -1,8 +1,9 @@
+using MBDK.Advertisement.AdsConfig.Enums;
 using UnityEngine;
 
 namespace MBDK.Advertisement.AdsConfig
 {
-    [CreateAssetMenu(fileName = "GoogleAdmobAdsConfig", menuName = "Scriptable Objects/GoogleAdmobAdsConfig")]
+    [CreateAssetMenu(fileName = "GoogleAdmobAdsConfig", menuName = "Advertising/Configs/GoogleAdmobAdsConfig")]
     public class GoogleAdmobAdsConfig : ScriptableObject
     {
         [SerializeField] private AdmobAdsType adsType;

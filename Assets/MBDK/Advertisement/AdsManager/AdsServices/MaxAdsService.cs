@@ -7,6 +7,8 @@ namespace MBDK.Advertisement.AdsManager.AdsServices
 {
     public class MaxAdsService : IAdsService
     {
+        private const string MaxLogTag = "MaxAdsService";
+        
         private readonly MaxAdsConfig _maxAdsConfig;
         private MaxBannerAds _maxBannerAds;
         private MaxInterstitialAds _maxInterstitialAds;
@@ -31,11 +33,11 @@ namespace MBDK.Advertisement.AdsManager.AdsServices
             this.IsAdServiceReady = sdkConfiguration.IsSuccessfullyInitialized;
             if (this.IsAdServiceReady)
             {
-                Debug.Log("Max SDK initialized successfully");
+                Debug.Log($"[{MaxLogTag}] Max SDK initialized successfully");
             }
             else
             {
-                Debug.LogError("Max SDK failed to initialize");
+                Debug.LogError($"[{MaxLogTag}] Max SDK failed to initialize");
             }
         }
 
@@ -43,18 +45,21 @@ namespace MBDK.Advertisement.AdsManager.AdsServices
         {
             string bannerAdUnitId = this._maxAdsConfig.GetBannerAdUnityId();
             this._maxBannerAds = new MaxBannerAds(bannerAdUnitId);
+            Debug.Log($"[{MaxLogTag}] Max banner ads initialized successfully: {bannerAdUnitId}");
         }
 
         private void InitializeInterstitialAds()
         {
             string interstitialAdUnitId = this._maxAdsConfig.GetInterstitialAdUnitId();
             this._maxInterstitialAds = new MaxInterstitialAds(interstitialAdUnitId);
+            Debug.Log($"[{MaxLogTag}] Max interstitial ads initialized successfully: {interstitialAdUnitId}");
         }
     
         private void InitializeRewardedAds()
         {
             string rewardedAdUnitId = this._maxAdsConfig.GetRewardedAdUnitId();
             this._maxRewardedAds = new MaxRewardedAds(rewardedAdUnitId);
+            Debug.Log($"[{MaxLogTag}] Max rewarded ads initialized successfully: {rewardedAdUnitId}");
         }
 
         public void ToggleBannerAds(bool shouldShowAds)
