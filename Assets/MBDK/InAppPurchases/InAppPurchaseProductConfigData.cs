@@ -2,40 +2,43 @@ using System;
 using UnityEngine;
 using UnityEngine.Purchasing;
 
-[CreateAssetMenu(fileName = "InAppPurchaseProductConfigData", menuName = "InAppPurchase/ConfigData/InAppPurchaseProductConfigData")]
-public class InAppPurchaseProductConfigData : ScriptableObject
+namespace MBDK.InAppPurchases
 {
-    [SerializeField] public InAppPurchaseProductConfig[] productConfigs;
+    [CreateAssetMenu(fileName = "InAppPurchaseProductConfigData", menuName = "InAppPurchase/ConfigData/InAppPurchaseProductConfigData")]
+    public class InAppPurchaseProductConfigData : ScriptableObject
+    {
+        [SerializeField] public InAppPurchaseProductConfig[] productConfigs;
     
-    public InAppPurchaseProductConfig GetProductConfig(string productId)
-    {
-        foreach (var productConfig in productConfigs)
+        public InAppPurchaseProductConfig GetProductConfig(string productId)
         {
-            if (productConfig.GetProductID() == productId)
+            foreach (var productConfig in productConfigs)
             {
-                return productConfig;
+                if (productConfig.GetProductID() == productId)
+                {
+                    return productConfig;
+                }
             }
-        }
         
-        return default;
+            return default;
+        }
     }
-}
 
-[Serializable]
-public struct InAppPurchaseProductConfig
-{
-    public string appleProductId;
-    public string googleProductId;
-    public ProductType productType;
-    public string defaultPrice;
-
-    public string GetProductID()
+    [Serializable]
+    public struct InAppPurchaseProductConfig
     {
+        public string appleProductId;
+        public string googleProductId;
+        public ProductType productType;
+        public string defaultPrice;
+
+        public string GetProductID()
+        {
 #if UNITY_IOS
         return appleProductId;
 #elif UNITY_ANDROID
         return googleProductId;
 #endif
-        return null;
+            return null;
+        }
     }
 }
