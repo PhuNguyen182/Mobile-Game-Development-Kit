@@ -1,0 +1,550 @@
+---
+alwaysApply: true
+---
+
+# Code Writing Requirements Rule
+
+## Mandatory Code Quality Standards
+
+### Overview
+Every piece of code written in this project MUST strictly adhere to five fundamental principles: **Readability**, **Scalability**, **Design Patterns**, **Maintainability**, and **Optimal Runtime Performance**. These principles are non-negotiable and must be applied consistently across all development work.
+
+## 1. Readability Requirements
+
+### Code Clarity
+- **Use descriptive names**: All variables, methods, classes, and functions must have self-explanatory names
+- **Follow naming conventions**: Adhere to established C# naming conventions (PascalCase for classes, camelCase for variables)
+- **Write clear comments**: Document complex business logic and algorithms with concise, meaningful comments
+- **Avoid abbreviations**: Use full words unless abbreviations are universally understood (e.g., `id`, `url`)
+- **Maintain consistent formatting**: Use proper indentation, spacing, and brace placement
+
+### Code Structure
+- **Keep methods focused**: Each method should have a single responsibility
+- **Limit method length**: Methods should not exceed 50 lines unless absolutely necessary
+- **Use meaningful return types**: Prefer specific return types over generic ones
+- **Implement clear error handling**: Use appropriate exception types and meaningful error messages
+
+### Examples of Readable Code
+```csharp
+// ✅ Good - Clear and descriptive
+public bool IsPlayerWithinAttackRange(Player player, float attackDistance)
+{
+    if (player == null) return false;
+    
+    float distanceToPlayer = Vector3.Distance(this.transform.position, player.transform.position);
+    return distanceToPlayer <= attackDistance;
+}
+
+// ❌ Bad - Unclear and abbreviated
+public bool ChkRng(Player p, float d)
+{
+    return Vector3.Distance(this.transform.position, p.transform.position) <= d;
+}
+```
+
+## 2. Scalability Requirements
+
+### Architecture Design
+- **Use modular design**: Break down complex systems into smaller, independent modules
+- **Implement dependency injection**: Avoid hard-coded dependencies to enable easy testing and modification
+- **Design for extensibility**: Create interfaces and abstract classes where future extensions are likely
+- **Follow SOLID principles**: Apply Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, and Dependency Inversion principles
+
+### Performance Scaling
+- **Optimize data structures**: Choose appropriate collections (List vs Dictionary vs HashSet) based on access patterns
+- **Implement efficient algorithms**: Avoid O(n²) operations when O(n log n) or O(n) alternatives exist
+- **Use object pooling**: Reuse objects for frequently created/destroyed entities
+- **Cache expensive operations**: Store results of costly calculations when they don't change frequently
+
+### Examples of Scalable Code
+```csharp
+// ✅ Good - Extensible interface design
+public interface IWeapon
+{
+    float Damage { get; }
+    float Range { get; }
+    void Fire(Transform target);
+}
+
+public class WeaponSystem : MonoBehaviour
+{
+    private readonly Dictionary<WeaponType, IWeapon> weapons = new();
+    
+    public void RegisterWeapon(WeaponType type, IWeapon weapon)
+    {
+        weapons[type] = weapon;
+    }
+    
+    public bool TryFireWeapon(WeaponType type, Transform target)
+    {
+        return weapons.TryGetValue(type, out var weapon) && weapon.Fire(target);
+    }
+}
+```
+
+## 3. Design Pattern Requirements
+
+### Mandatory Pattern Usage
+**CRITICAL**: When implementing functionality, you MUST identify and apply appropriate design patterns for the task. Design patterns are not optional suggestions but required architectural foundations for maintainable, scalable code.
+
+### When to Apply Patterns
+- **Always evaluate**: Before implementing any significant feature, ask "Which design pattern fits this use case?"
+- **Pattern-first approach**: Start with the pattern, then implement the specific functionality
+- **Justify pattern choice**: If no pattern is used, provide clear justification for why the simple approach is better
+
+### Essential Patterns for Unity Development
+
+#### 3.1 Creational Patterns
+- **Singleton Pattern**: For managers, services, and global controllers
+- **Factory Pattern**: For creating different types of objects with similar interfaces
+- **Object Pool Pattern**: For frequently created/destroyed objects (bullets, enemies, particles)
+- **Builder Pattern**: For complex object construction with many optional parameters
+
+#### 3.2 Structural Patterns
+- **Adapter Pattern**: For integrating third-party systems or legacy code
+- **Decorator Pattern**: For adding dynamic behaviors to objects
+- **Facade Pattern**: For simplifying complex subsystem interfaces
+- **Composite Pattern**: For hierarchical object structures (UI elements, game objects)
+
+#### 3.3 Behavioral Patterns
+- **Observer Pattern**: For event systems and UI updates
+- **State Pattern**: For character states, game states, AI behaviors
+- **Command Pattern**: For input handling, undo/redo functionality
+- **Strategy Pattern**: For interchangeable algorithms (AI behaviors, combat systems)
+- **Template Method**: For similar operations with different implementations
+
+### Pattern Implementation Examples
+
+#### ✅ Singleton Pattern - Game Manager
+```csharp
+public class GameManager : MonoBehaviour
+{
+    public static GameManager Instance { get; private set; }
+    
+    [SerializeField] private GameConfig gameConfig;
+    private PlayerController playerController;
+    
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+            DontDestroyOnLoad(gameObject);
+            InitializeGame();
+        }
+        else
+        {
+            Destroy(gameObject);
+        }
+    }
+    
+    private void InitializeGame()
+    {
+        // Game initialization logic
+    }
+}
+```
+
+#### ✅ Factory Pattern - Weapon Creation
+```csharp
+public interface IWeaponFactory
+{
+    IWeapon CreateWeapon(WeaponType type);
+}
+
+public class WeaponFactory : IWeaponFactory
+{
+    public IWeapon CreateWeapon(WeaponType type)
+    {
+        return type switch
+        {
+            WeaponType.Sword => new SwordWeapon(),
+            WeaponType.Bow => new BowWeapon(),
+            WeaponType.Staff => new StaffWeapon(),
+            _ => throw new ArgumentException($"Unknown weapon type: {type}")
+        };
+    }
+}
+```
+
+#### ✅ Object Pool Pattern - Bullet Management
+```csharp
+public class BulletPool : MonoBehaviour
+{
+    [SerializeField] private GameObject bulletPrefab;
+    [SerializeField] private int poolSize = 50;
+    
+    private Queue<GameObject> bulletPool = new();
+    private List<GameObject> activeBullets = new();
+    
+    private void Start()
+    {
+        InitializePool();
+    }
+    
+    private void InitializePool()
+    {
+        for (int i = 0; i < poolSize; i++)
+        {
+            var bullet = Instantiate(bulletPrefab);
+            bullet.SetActive(false);
+            bulletPool.Enqueue(bullet);
+        }
+    }
+    
+    public GameObject GetBullet()
+    {
+        if (bulletPool.Count > 0)
+        {
+            var bullet = bulletPool.Dequeue();
+            activeBullets.Add(bullet);
+            bullet.SetActive(true);
+            return bullet;
+        }
+        
+        // Pool exhausted, create new bullet
+        var newBullet = Instantiate(bulletPrefab);
+        activeBullets.Add(newBullet);
+        return newBullet;
+    }
+    
+    public void ReturnBullet(GameObject bullet)
+    {
+        if (activeBullets.Remove(bullet))
+        {
+            bullet.SetActive(false);
+            bulletPool.Enqueue(bullet);
+        }
+    }
+}
+```
+
+#### ✅ Observer Pattern - UI Updates
+```csharp
+public class PlayerHealth : MonoBehaviour, IObservable<int>
+{
+    private List<IObserver<int>> observers = new();
+    private int currentHealth;
+    private int maxHealth = 100;
+    
+    public int CurrentHealth 
+    { 
+        get => currentHealth;
+        private set 
+        {
+            if (currentHealth != value)
+            {
+                currentHealth = Mathf.Clamp(value, 0, maxHealth);
+                NotifyObservers(currentHealth);
+            }
+        }
+    }
+    
+    public void Subscribe(IObserver<int> observer)
+    {
+        if (!observers.Contains(observer))
+        {
+            observers.Add(observer);
+            observer.OnNext(CurrentHealth);
+        }
+    }
+    
+    public void Unsubscribe(IObserver<int> observer)
+    {
+        observers.Remove(observer);
+    }
+    
+    private void NotifyObservers(int healthValue)
+    {
+        foreach (var observer in observers.ToArray())
+        {
+            observer.OnNext(healthValue);
+        }
+    }
+}
+```
+
+#### ✅ State Pattern - Player Movement States
+```csharp
+public interface IPlayerState
+{
+    void Enter(PlayerController player);
+    void Update(PlayerController player);
+    void Exit(PlayerController player);
+}
+
+public class IdleState : IPlayerState
+{
+    public void Enter(PlayerController player) { }
+    
+    public void Update(PlayerController player)
+    {
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            player.ChangeState(new JumpingState());
+        }
+        else if (Input.GetAxis("Horizontal") != 0)
+        {
+            player.ChangeState(new WalkingState());
+        }
+    }
+    
+    public void Exit(PlayerController player) { }
+}
+
+public class PlayerController : MonoBehaviour
+{
+    private IPlayerState currentState;
+    
+    private void Start()
+    {
+        currentState = new IdleState();
+        currentState.Enter(this);
+    }
+    
+    private void Update()
+    {
+        currentState?.Update(this);
+    }
+    
+    public void ChangeState(IPlayerState newState)
+    {
+        currentState?.Exit(this);
+        currentState = newState;
+        currentState.Enter(this);
+    }
+}
+```
+
+#### ✅ Command Pattern - Input System
+```csharp
+public interface ICommand
+{
+    void Execute();
+    void Undo();
+}
+
+public class MoveCommand : ICommand
+{
+    private Transform target;
+    private Vector3 direction;
+    private float speed;
+    
+    public MoveCommand(Transform target, Vector3 direction, float speed)
+    {
+        this.target = target;
+        this.direction = direction;
+        this.speed = speed;
+    }
+    
+    public void Execute()
+    {
+        target.Translate(direction * speed * Time.deltaTime);
+    }
+    
+    public void Undo()
+    {
+        target.Translate(-direction * speed * Time.deltaTime);
+    }
+}
+
+public class InputHandler : MonoBehaviour
+{
+    private Stack<ICommand> commandHistory = new();
+    
+    private void Update()
+    {
+        if (Input.GetKey(KeyCode.W))
+        {
+            var command = new MoveCommand(transform, Vector3.forward, 5f);
+            command.Execute();
+            commandHistory.Push(command);
+        }
+        
+        if (Input.GetKeyDown(KeyCode.Z) && commandHistory.Count > 0)
+        {
+            var lastCommand = commandHistory.Pop();
+            lastCommand.Undo();
+        }
+    }
+}
+```
+
+### Pattern Selection Guidelines
+1. **Identify the Problem**: What recurring issue are you solving?
+2. **Choose the Pattern**: Which pattern addresses this specific problem?
+3. **Implement Correctly**: Follow the pattern's structure and intent
+4. **Validate Usage**: Ensure the pattern adds value and doesn't over-engineer
+
+### Anti-Pattern Warnings
+- **Don't force patterns**: If a simple solution works better, use it
+- **Avoid pattern on patterns**: Don't layer multiple patterns unnecessarily
+- **Keep it simple**: Choose the simplest pattern that solves the problem
+
+## 4. Maintainability Requirements
+
+### Code Organization
+- **Follow established patterns**: Use consistent architectural patterns throughout the project
+- **Maintain clear separation of concerns**: Keep UI, business logic, and data persistence separate
+- **Use version control effectively**: Write meaningful commit messages and keep commits focused
+- **Document public APIs**: Provide comprehensive documentation for all public interfaces
+
+### Testing and Validation
+- **Write testable code**: Design methods and classes to be easily unit tested
+- **Include input validation**: Validate all inputs to prevent runtime errors
+- **Handle edge cases**: Consider and handle boundary conditions and error states
+- **Use defensive programming**: Assume that inputs may be invalid or unexpected
+
+### Refactoring Guidelines
+- **Refactor regularly**: Don't let technical debt accumulate
+- **Keep refactoring small**: Make incremental improvements rather than large rewrites
+- **Maintain backward compatibility**: When possible, preserve existing APIs during changes
+
+### Examples of Maintainable Code
+```csharp
+// ✅ Good - Well-organized and testable
+public class PlayerHealthManager : MonoBehaviour
+{
+    [SerializeField] private int maxHealth = 100;
+    private int currentHealth;
+    
+    public event System.Action<int> OnHealthChanged;
+    public event System.Action OnPlayerDied;
+    
+    public int CurrentHealth 
+    { 
+        get => currentHealth; 
+        private set 
+        {
+            if (currentHealth != value)
+            {
+                currentHealth = Mathf.Clamp(value, 0, maxHealth);
+                OnHealthChanged?.Invoke(currentHealth);
+                
+                if (currentHealth <= 0)
+                {
+                    OnPlayerDied?.Invoke();
+                }
+            }
+        }
+    }
+    
+    public bool TakeDamage(int damage)
+    {
+        if (damage < 0) 
+        {
+            Debug.LogWarning("Damage cannot be negative");
+            return false;
+        }
+        
+        CurrentHealth -= damage;
+        return CurrentHealth <= 0;
+    }
+}
+```
+
+## 5. Runtime Performance Requirements
+
+### Critical Performance Rules
+- **NEVER use Vector3.Distance for comparisons**: Always use sqrMagnitude (10-50x faster)
+- **Minimize allocations in Update loops**: Cache frequently used values and objects
+- **Use appropriate data structures**: Choose the right collection type for your access patterns
+- **Avoid LINQ in hot paths**: Use traditional loops for performance-critical code sections
+- **Cache component references**: Store GetComponent results instead of calling repeatedly
+
+### Memory Management
+- **Implement proper disposal**: Use `using` statements and implement IDisposable where needed
+- **Avoid memory leaks**: Properly unsubscribe from events and clear references
+- **Use object pooling**: For frequently created/destroyed objects
+- **Minimize garbage collection**: Reuse objects and avoid unnecessary allocations
+
+### Unity-Specific Optimizations
+- **Cache expensive Unity calls**: Store results of GetComponent, FindObjectOfType, etc.
+- **Use appropriate Update methods**: Use FixedUpdate for physics, Update for game logic
+- **Optimize rendering**: Use appropriate culling and LOD systems
+- **Profile before optimizing**: Use Unity Profiler to identify actual bottlenecks
+
+### Examples of High-Performance Code
+```csharp
+// ✅ Good - Performance optimized
+public class EnemyAI : MonoBehaviour
+{
+    [SerializeField] private float detectionRange = 10f;
+    [SerializeField] private float attackRange = 2f;
+    
+    private Transform playerTransform;
+    private float detectionRangeSquared;
+    private float attackRangeSquared;
+    
+    private void Awake()
+    {
+        detectionRangeSquared = detectionRange * detectionRange;
+        attackRangeSquared = attackRange * attackRange;
+    }
+    
+    private void Start()
+    {
+        playerTransform = FindObjectOfType<Player>()?.transform;
+    }
+    
+    private void Update()
+    {
+        if (playerTransform == null) return;
+        
+        Vector3 distanceToPlayer = playerTransform.position - transform.position;
+        float sqrDistance = distanceToPlayer.sqrMagnitude;
+        
+        if (sqrDistance <= attackRangeSquared)
+        {
+            AttackPlayer();
+        }
+        else if (sqrDistance <= detectionRangeSquared)
+        {
+            ChasePlayer();
+        }
+    }
+}
+```
+
+## 6. Code Review Requirements
+
+### Mandatory Checks
+Before any code is committed, it MUST pass these checks:
+- [ ] All public members have proper XML documentation
+- [ ] No hard-coded magic numbers or strings
+- [ ] Proper error handling and input validation
+- [ ] No performance anti-patterns (Vector3.Distance in hot paths, unnecessary allocations)
+- [ ] Consistent naming conventions throughout
+- [ ] Appropriate use of data structures for access patterns
+- [ ] No memory leaks or resource disposal issues
+- [ ] Code follows established architectural patterns
+- [ ] **Design patterns applied where appropriate for the task**
+- [ ] **Pattern choice justified if no pattern is used**
+- [ ] **Pattern implementation follows correct structure and intent**
+
+### Performance Validation
+- [ ] No expensive operations in Update/FixedUpdate without caching
+- [ ] Appropriate use of sqrMagnitude vs Distance
+- [ ] Efficient collection usage (Dictionary vs List lookups)
+- [ ] Proper object pooling implementation where needed
+
+## 7. Enforcement Guidelines
+
+### Development Workflow
+1. **Before Writing**: Consider the five pillars (readability, scalability, design patterns, maintainability, performance)
+2. **During Development**: Continuously apply these principles throughout coding
+3. **Pattern Evaluation**: Always ask "Which design pattern fits this task?" before implementation
+4. **Before Commit**: Run through the mandatory checks list
+5. **Code Review**: Ensure all requirements are met before merging
+
+### Tools and Practices
+- Use static analysis tools to catch common issues early
+- Profile performance-critical sections to validate optimizations
+- Maintain consistent code formatting and style guidelines
+- Regular refactoring sessions to address technical debt
+
+## Conclusion
+
+These requirements are not suggestions but mandatory standards. Every line of code must demonstrate commitment to creating software that is not only functional but also a pleasure to work with, easy to extend, simple to maintain, and optimized for the best possible runtime performance.
+
+Remember: **Code is written once but read many times**. Invest in quality upfront to save time and effort throughout the project's lifecycle.

@@ -1,0 +1,447 @@
+---
+alwaysApply: true
+---
+
+# C# Naming Conventions for Unity Projects
+
+This document outlines the naming conventions to be followed consistently throughout the C# codebase, with specific rules for Unity Engine components.
+
+## General C# Naming Rules (Pure C# Code)
+
+### 1. Classes and Structs
+- **Rule**: Use **PascalCase** for class and struct names
+- **Guidelines**: 
+  - Names should be nouns or noun phrases representing a single entity or concept
+  - Avoid prefixes or suffixes
+  - Be descriptive and meaningful
+- **Examples**: `OrderProcessor`, `CustomerRepository`, `PopupManager`, `GameController`
+
+### 2. Interfaces
+- **Rule**: Prefix interface names with uppercase 'I', followed by **PascalCase**
+- **Examples**: `IUserRepository`, `ILogger`, `IPopup`, `IUIPresenter`
+
+### 3. Methods
+- **Rule**: Use **PascalCase** for method names
+- **Guidelines**:
+  - Start with a verb or verb phrase indicating the action performed
+  - Be descriptive and clear about the method's purpose
+- **Examples**: `CalculateTotal()`, `GetCustomerById()`, `ShowPopup()`, `UpdateData()`
+
+### 4. Properties
+- **Rule**: Use **PascalCase** for property names
+- **Guidelines**: Names should represent the data they hold
+- **Examples**: `FirstName`, `OrderDate`, `IsActive`, `PopupType`
+
+### 5. Private Fields (Pure C#)
+- **Rule**: Use **camelCase** prefixed with an underscore
+- **Examples**: `_totalAmount`, `_customerName`, `_timeoutCoroutine`
+
+### 6. Public Fields (Pure C#)
+- **Rule**: Use **PascalCase** (avoid public fields, prefer properties)
+- **Examples**: `TotalAmount`, `CustomerName`
+
+### 7. Local Variables and Method Parameters
+- **Rule**: Use **camelCase**
+- **Examples**: `orderCount`, `customerId`, `popupData`, `timeoutDuration`
+
+### 8. Constants
+- **Rule**: Use **PascalCase**
+- **Examples**: `MaxRetryCount`, `DefaultTimeout`, `MaxPopupCount`
+
+### 9. Enums
+- **Rule**: Use **PascalCase** for enum names and their members
+- **Guidelines**: Use singular nouns for enum names
+- **Examples**:
+  ```csharp
+  public enum OrderStatus
+  {
+      Pending,
+      Shipped,
+      Delivered,
+      Canceled
+  }
+  ```
+
+### 10. Events
+- **Rule**: Use **PascalCase** for event names
+- **Guidelines**: Use a verb or verb phrase indicating the action
+- **Examples**: `DataLoaded`, `ItemClicked`, `OnPopupShown`, `OnUserInteraction`
+
+### 11. Boolean Variables and Properties
+- **Rule**: Prefix with "Is", "Has", "Can", or similar to indicate true/false condition
+- **Examples**: `IsAvailable`, `HasChildren`, `CanExecute`, `IsActive`
+
+### 12. Namespaces
+- **Rule**: Use **PascalCase** for namespace names
+- **Guidelines**: Structure hierarchically, starting with company/project name
+- **Examples**: `Foundations.Popups.Interfaces`, `CompanyName.ProjectName.ModuleName`
+
+## Unity-Specific Naming Rules
+
+### 1. Classes with [Serializable] Attribute
+- **Rule**: All fields (regardless of access modifier) use **camelCase**
+- **Guidelines**: This applies to data structures meant for serialization
+- **Examples**:
+  ```csharp
+  [Serializable]
+  public class PopupData
+  {
+      public string id;           // camelCase
+      public int priority;        // camelCase
+      public bool canCloseOnOutsideClick; // camelCase
+  }
+  ```
+
+### 2. MonoBehaviour and ScriptableObject Derived Classes
+- **Rule**: All fields (public, protected, internal) use **camelCase**
+- **Exception**: Private fields without [SerializeField] follow pure C# rules (camelCase with underscore prefix)
+- **Examples**:
+  ```csharp
+  public class PopupManager : MonoBehaviour
+  {
+      [SerializeField] private Canvas popupCanvas;     // camelCase (has [SerializeField])
+      [SerializeField] protected GameObject popupPanel; // camelCase (has [SerializeField])
+      public int currentSortingOrder;                   // camelCase (Unity field)
+      private Coroutine _timeoutCoroutine;             // camelCase with underscore (private, no [SerializeField])
+  }
+  ```
+
+### 3. Unity Engine Components (Non-C# Classes)
+- **Rule**: Follow Unity's established conventions (typically **PascalCase** for most Unity components)
+- **Examples**: `Transform`, `Rigidbody`, `Canvas`, `Button`, `TextMeshProUGUI`
+
+## Special Cases and Guidelines
+
+### 1. Abbreviations and Acronyms
+- **Rule**: Use standard abbreviations and acronyms where appropriate
+- **For acronyms of 3+ letters**: Use PascalCase
+- **Examples**: `XmlParser`, `HttpRequest`, `UIPopup`, `UIView`
+
+### 2. Avoid Hungarian Notation
+- **Rule**: Do not prefix variable names with type indicators
+- **Examples**: Use `count` instead of `iCount`, `name` instead of `strName`
+
+### 3. Generic Type Parameters
+- **Rule**: Use **PascalCase** starting with 'T'
+- **Examples**: `TData`, `TPresenterData`, `TViewData`, `TComponent`
+
+### 4. Static Members
+- **Rule**: Follow the same rules as non-static members of the same type
+- **Examples**: `PopupManager` (class), `ShowPopup()` (method), `DefaultTimeout` (constant)
+
+## 13. Natural Language and Readability Standards
+
+### Use Natural, Contextual Names
+- **Rule**: Always use natural language that is easy to understand and contextually appropriate
+- **Guidelines**:
+  - Choose names that clearly express intent and purpose
+  - Use domain-specific terminology when appropriate
+  - Avoid abbreviations unless they are widely understood
+  - Prefer descriptive names over short cryptic ones
+- **Examples**:
+  ```csharp
+  // ❌ Cryptic or unclear names
+  var tmp = GetData();
+  var x = CalculateResult();
+  var flag = CheckStatus();
+  
+  // ✅ Natural, descriptive names
+  var userProfile = GetUserProfile();
+  var totalScore = CalculatePlayerScore();
+  var isGameActive = CheckGameStatus();
+  
+  // ❌ Unclear abbreviations
+  public class UsrMgr { }
+  public void ProcData() { }
+  public bool ChkValid() { }
+  
+  // ✅ Clear, natural names
+  public class UserManager { }
+  public void ProcessUserData() { }
+  public bool IsValidInput() { }
+  ```
+
+### Context-Aware Naming
+- **Rule**: Names should be appropriate for their specific context and scenario
+- **Guidelines**:
+  - Use terminology that fits the domain (game, business, UI, etc.)
+  - Consider the user's perspective when naming public APIs
+  - Make names self-documenting through context
+- **Examples**:
+  ```csharp
+  // ✅ Game context - clear gaming terminology
+  public class PlayerController : MonoBehaviour
+  {
+      public float moveSpeed;
+      public int healthPoints;
+      public bool isInvulnerable;
+      
+      public void TakeDamage(int damageAmount) { }
+      public void HealPlayer(int healAmount) { }
+  }
+  
+  // ✅ UI context - clear UI terminology
+  public class ConfirmDialog : MonoBehaviour
+  {
+      public string dialogTitle;
+      public string dialogMessage;
+      public bool showCancelButton;
+      
+      public void ShowConfirmation() { }
+      public void HideDialog() { }
+  }
+  
+  // ✅ Business logic context
+  public class OrderProcessor
+  {
+      public decimal CalculateTotalPrice() { }
+      public bool ValidatePaymentMethod() { }
+      public void ProcessOrder() { }
+  }
+  ```
+
+### Concise but Clear Names
+- **Rule**: Balance brevity with clarity - be concise but not cryptic
+- **Guidelines**:
+  - Remove unnecessary words while maintaining clarity
+  - Use common abbreviations that are universally understood
+  - Avoid overly long names that don't add value
+- **Examples**:
+  ```csharp
+  // ❌ Too verbose
+  public class PlayerCharacterMovementController { }
+  public void ProcessUserInputDataAndUpdatePlayerPosition() { }
+  public bool CheckIfPlayerIsCurrentlyAlive() { }
+  
+  // ❌ Too cryptic
+  public class PCMCtrl { }
+  public void ProcUsrInp() { }
+  public bool ChkAlv() { }
+  
+  // ✅ Balanced - clear and concise
+  public class PlayerController { }
+  public void HandlePlayerInput() { }
+  public bool IsPlayerAlive { get; }
+  ```
+
+## 14. Documentation and Comments Standards
+
+### XML Documentation Requirements
+- **Rule**: All public types and members MUST have XML documentation
+- **Guidelines**:
+  - Use natural language in documentation
+  - Explain the "why" and "what", not just the "how"
+  - Include practical usage examples
+  - Keep documentation concise but complete
+- **Examples**:
+  ```csharp
+  /// <summary>
+  /// Manages the player's health system including damage, healing, and death states.
+  /// </summary>
+  /// <remarks>
+  /// This component tracks the player's current health, maximum health, and handles
+  /// all health-related events such as taking damage, healing, and death conditions.
+  /// </remarks>
+  /// <example>
+  /// <code>
+  /// // Take 25 damage
+  /// playerHealth.TakeDamage(25);
+  /// 
+  /// // Heal to full health
+  /// playerHealth.HealToFull();
+  /// </code>
+  /// </example>
+  public class PlayerHealth : MonoBehaviour
+  {
+      /// <summary>
+      /// Applies damage to the player and triggers death if health reaches zero.
+      /// </summary>
+      /// <param name="damageAmount">The amount of damage to apply</param>
+      /// <returns>True if the player died from this damage, false otherwise</returns>
+      public bool TakeDamage(int damageAmount) { }
+  }
+  ```
+
+### Inline Comments Standards
+- **Rule**: Use inline comments to explain complex logic and business rules
+- **Guidelines**:
+  - Explain the reasoning behind complex algorithms
+  - Clarify business rules and edge cases
+  - Use natural language that explains intent
+  - Avoid stating the obvious
+- **Examples**:
+  ```csharp
+  public void CalculatePlayerScore()
+  {
+      // Start with base score from completed objectives
+      int totalScore = completedObjectives.Count * baseObjectiveScore;
+      
+      // Apply time bonus - faster completion gives higher multiplier
+      // Maximum bonus of 2x for completing in under 30 seconds
+      float timeBonus = Mathf.Clamp(30f / completionTime, 1f, 2f);
+      totalScore = Mathf.RoundToInt(totalScore * timeBonus);
+      
+      // Reduce score for using hints (encourages independent problem solving)
+      totalScore -= hintsUsed * hintPenalty;
+      
+      // Ensure score never goes below zero
+      totalScore = Mathf.Max(0, totalScore);
+      
+      playerScore = totalScore;
+  }
+  ```
+
+### Method and Property Documentation
+- **Rule**: Document the purpose, parameters, return values, and side effects
+- **Guidelines**:
+  - Use action-oriented language for methods
+  - Describe what the method accomplishes, not how it does it
+  - Include parameter validation requirements
+  - Document any side effects or state changes
+- **Examples**:
+  ```csharp
+  /// <summary>
+  /// Attempts to purchase an item using the player's current currency.
+  /// </summary>
+  /// <param name="itemId">The unique identifier of the item to purchase</param>
+  /// <param name="quantity">Number of items to purchase (must be positive)</param>
+  /// <returns>True if purchase was successful, false if insufficient funds or invalid item</returns>
+  /// <remarks>
+  /// This method will automatically deduct currency and add items to inventory
+  /// if the purchase is successful. Throws ArgumentException if itemId is invalid.
+  /// </remarks>
+  public bool TryPurchaseItem(string itemId, int quantity = 1)
+  {
+      // Implementation...
+  }
+  
+  /// <summary>
+  /// Gets the current health percentage as a value between 0 and 1.
+  /// </summary>
+  /// <value>
+  /// Returns 0.0 for no health, 1.0 for full health.
+  /// </value>
+  public float HealthPercentage => (float)currentHealth / maxHealth;
+  ```
+
+## 15. Context-Specific Naming Patterns
+
+### Game Development Context
+- **Rule**: Use gaming terminology that developers and designers understand
+- **Guidelines**:
+  - Use clear action verbs for player interactions
+  - Use descriptive nouns for game objects and systems
+  - Follow common gaming conventions
+- **Examples**:
+  ```csharp
+  // ✅ Clear gaming terminology
+  public class WeaponSystem
+  {
+      public void FireWeapon() { }
+      public void ReloadWeapon() { }
+      public bool CanFire { get; }
+      public int AmmoCount { get; }
+  }
+  
+  public class EnemyAI
+  {
+      public void DetectPlayer() { }
+      public void ChasePlayer() { }
+      public void AttackPlayer() { }
+      public EnemyState CurrentState { get; }
+  }
+  ```
+
+### UI/UX Context
+- **Rule**: Use interface terminology that reflects user interactions
+- **Guidelines**:
+  - Name UI elements from the user's perspective
+  - Use action-oriented names for user interactions
+  - Be consistent with UI framework conventions
+- **Examples**:
+  ```csharp
+  // ✅ User-focused UI naming
+  public class SettingsPanel
+  {
+      public void ShowSettings() { }
+      public void HideSettings() { }
+      public void ApplyChanges() { }
+      public void ResetToDefaults() { }
+  }
+  
+  public class MenuButton
+  {
+      public void OnButtonClicked() { }
+      public void SetButtonText(string text) { }
+      public bool IsInteractable { get; set; }
+  }
+  ```
+
+## Enforcement Rules
+
+### Always Apply These Rules When:
+1. Creating new classes, methods, properties, or fields
+2. Refactoring existing code
+3. Working with Unity components and serializable data
+4. Writing pure C# code without Unity dependencies
+5. Writing documentation and comments
+6. Naming variables and parameters
+
+### Exception Handling:
+- When working with third-party libraries that have different conventions, maintain consistency within your codebase
+- Legacy code should be gradually refactored to follow these conventions
+- Document any deviations with clear justification
+
+### Code Review Checklist:
+- [ ] Class and method names use PascalCase
+- [ ] Interface names start with 'I' followed by PascalCase
+- [ ] Private fields use camelCase with underscore prefix (pure C#) or camelCase (Unity with [SerializeField])
+- [ ] Public Unity fields use camelCase
+- [ ] [Serializable] class fields use camelCase
+- [ ] Local variables and parameters use camelCase
+- [ ] Boolean variables/properties use appropriate prefixes (Is, Has, Can)
+- [ ] Names are descriptive and meaningful
+- [ ] Names use natural language and are contextually appropriate
+- [ ] Names are concise but not cryptic
+- [ ] All public members have XML documentation
+- [ ] Complex logic has inline comments explaining intent
+- [ ] No Hungarian notation is used
+
+## Examples Summary
+
+```csharp
+// Pure C# Class
+public class PopupManager
+{
+    private readonly IPopupManager _popupManager;  // camelCase with underscore
+    public static int MaxPopupCount { get; set; }  // PascalCase
+    
+    public void ShowPopup<T>() where T : IPopup    // PascalCase
+    {
+        var popupInstance = CreatePopup<T>();      // camelCase
+    }
+}
+
+// Unity MonoBehaviour
+public class ConfirmPopupPresenter : MonoBehaviour
+{
+    [SerializeField] private ConfirmPopupView confirmPopupView; // camelCase
+    [SerializeField] protected Canvas popupCanvas;             // camelCase
+    public bool isActive;                                      // camelCase
+    private Coroutine _timeoutCoroutine;                       // camelCase with underscore
+    
+    public void ShowPopup() { }                                // PascalCase
+}
+
+// Serializable Data
+[Serializable]
+public class ConfirmPopupData
+{
+    public string title;                    // camelCase
+    public string message;                  // camelCase
+    public bool showYesButton;              // camelCase
+    public int priority;                    // camelCase
+}
+```
+
+These conventions ensure code readability, maintainability, and consistency across the entire Unity project codebase.

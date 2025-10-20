@@ -1,0 +1,1692 @@
+---
+alwaysApply: true
+---
+
+# C# Code Style Rules for Unity Projects
+
+This document outlines mandatory code style rules for writing clean, readable, and maintainable C# code in Unity projects.
+
+## 1. Interface Member Visibility Rules
+
+### Public Access Modifier Placement
+- **Rule**: Always place `public` access modifier BEFORE methods and properties in interfaces
+- **Guidelines**:
+  - Public visibility should be explicitly stated for clarity
+  - Place `public` modifier at the beginning of method/property declarations
+  - Improves readability and makes interface contracts explicit
+  - Follows consistent visibility declaration pattern
+- **Examples**:
+  ```csharp
+  // ✅ Correct - public modifier before interface members
+  namespace Foundations.Popups.Interfaces
+  {
+      public interface IPopupManager
+      {
+          public T ShowPopup<T>() where T : class, IPopup;
+          public void HidePopup(IPopup popup);
+          public bool IsPopupActive(IPopup popup);
+          public int ActivePopupCount { get; }
+          public event System.Action<IPopup> OnPopupShown;
+          public event System.Action<IPopup> OnPopupHidden;
+      }
+      
+      public interface IPopup
+      {
+          public void Show();
+          public void Hide();
+          public bool IsVisible { get; }
+          public string PopupId { get; }
+      }
+  }
+  
+  // ❌ Incorrect - missing public modifier or wrong placement
+  namespace Foundations.Popups.Interfaces
+  {
+      public interface IPopupManager
+      {
+          T ShowPopup<T>() where T : class, IPopup; // Missing public
+          void HidePopup(IPopup popup); // Missing public
+          bool IsPopupActive(IPopup popup); // Missing public
+          int ActivePopupCount { get; } // Missing public
+          event System.Action<IPopup> OnPopupShown; // Missing public
+          event System.Action<IPopup> OnPopupHidden; // Missing public
+      }
+  }
+  ```
+
+### Interface Documentation Style
+- **Rule**: All interface members must have XML documentation
+- **Guidelines**:
+  - Document the purpose and behavior of each member
+  - Include parameter descriptions and return value information
+  - Use consistent documentation format across all interfaces
+  - Keep documentation concise but complete
+- **Examples**:
+  ```csharp
+  /// <summary>
+  /// Interface for managing popup lifecycle and coordination
+  /// </summary>
+  public interface IPopupManager
+  {
+      /// <summary>
+      /// Shows a popup of the specified type and returns the instance
+      /// </summary>
+      /// <typeparam name="T">The type of popup to show</typeparam>
+      /// <returns>The popup instance that was shown</returns>
+      public T ShowPopup<T>() where T : class, IPopup;
+      
+      /// <summary>
+      /// Hides the specified popup and removes it from active popups
+      /// </summary>
+      /// <param name="popup">The popup to hide</param>
+      public void HidePopup(IPopup popup);
+      
+      /// <summary>
+      /// Gets the current number of active popups
+      /// </summary>
+      /// <value>The count of currently visible popups</value>
+      public int ActivePopupCount { get; }
+  }
+  ```
+
+## 2. Class Internal Member Reference Rules
+
+### Mandatory 'this' Reference Usage
+- **Rule**: Always use `this.` reference when accessing class members (methods, properties, fields)
+- **Guidelines**:
+  - Use `this.` for all internal class member access
+  - Improves code clarity and distinguishes between local variables and class members
+  - Makes code more explicit about data source
+  - Helps prevent naming conflicts with local variables
+  - Required for all non-static class members
+- **Examples**:
+  ```csharp
+  // ✅ Correct - using this reference for all class members
+  namespace Foundations.Popups.Core
+  {
+      public class PopupManager : MonoBehaviour, IPopupManager
+      {
+          [SerializeField] private Canvas popupCanvas;
+          [SerializeField] private Transform popupContainer;
+          private readonly List<IPopup> activePopups = new();
+          private int currentSortingOrder = 1000;
+          
+          public T ShowPopup<T>() where T : class, IPopup
+          {
+              // Use this reference for class members
+              var popupInstance = this.CreatePopupInstance<T>();
+              this.AddPopupToContainer(popupInstance);
+              this.SetPopupSortingOrder(popupInstance);
+              this.activePopups.Add(popupInstance);
+              
+              popupInstance.Show();
+              this.OnPopupShown?.Invoke(popupInstance);
+              
+              return popupInstance;
+          }
+          
+          public void HidePopup(IPopup popup)
+          {
+              if (this.activePopups.Contains(popup))
+              {
+                  popup.Hide();
+                  this.activePopups.Remove(popup);
+                  this.OnPopupHidden?.Invoke(popup);
+              }
+          }
+          
+          public bool IsPopupActive(IPopup popup)
+          {
+              return this.activePopups.Contains(popup);
+          }
+          
+          public int ActivePopupCount => this.activePopups.Count;
+          
+          private T CreatePopupInstance<T>() where T : class, IPopup
+          {
+              // Use this reference even in private methods
+              var prefab = this.GetPopupPrefab<T>();
+              var instance = Instantiate(prefab, this.popupContainer);
+              return instance.GetComponent<T>();
+          }
+          
+          private void AddPopupToContainer(IPopup popup)
+          {
+              if (popup is MonoBehaviour popupMono)
+              {
+                  popupMono.transform.SetParent(this.popupContainer);
+              }
+          }
+          
+          private void SetPopupSortingOrder(IPopup popup)
+          {
+              if (popup is MonoBehaviour popupMono)
+              {
+                  var canvas = popupMono.GetComponent<Canvas>();
+                  if (canvas != null)
+                  {
+                      canvas.sortingOrder = this.currentSortingOrder++;
+                  }
+              }
+          }
+      }
+  }
+  
+  // ❌ Incorrect - missing this reference for class members
+  namespace Foundations.Popups.Core
+  {
+      public class PopupManager : MonoBehaviour, IPopupManager
+      {
+          [SerializeField] private Canvas popupCanvas;
+          [SerializeField] private Transform popupContainer;
+          private readonly List<IPopup> activePopups = new();
+          private int currentSortingOrder = 1000;
+          
+          public T ShowPopup<T>() where T : class, IPopup
+          {
+              // Missing this reference - unclear if these are class members
+              var popupInstance = CreatePopupInstance<T>(); // Should be this.CreatePopupInstance<T>()
+              AddPopupToContainer(popupInstance); // Should be this.AddPopupToContainer(popupInstance)
+              SetPopupSortingOrder(popupInstance); // Should be this.SetPopupSortingOrder(popupInstance)
+              activePopups.Add(popupInstance); // Should be this.activePopups.Add(popupInstance)
+              
+              popupInstance.Show();
+              OnPopupShown?.Invoke(popupInstance); // Should be this.OnPopupShown?.Invoke(popupInstance)
+              
+              return popupInstance;
+          }
+      }
+  }
+  ```
+
+### Static Member Access Exception
+- **Rule**: Static members do NOT require `this.` reference
+- **Guidelines**:
+  - Static methods, properties, and fields are accessed directly
+  - Use class name for static member access when clarity is needed
+  - Only instance members require `this.` reference
+- **Examples**:
+  ```csharp
+  public class GameManager : MonoBehaviour
+  {
+      private static GameManager instance;
+      private static int gameVersion = 1;
+      
+      public static GameManager Instance => instance; // Static property - no this needed
+      
+      public static int GetGameVersion() // Static method - no this needed
+      {
+          return gameVersion; // Static field - no this needed
+      }
+      
+      private void Awake()
+      {
+          // Instance members need this reference
+          this.InitializeGame();
+          this.SetupEventListeners();
+          
+          // Static members accessed directly
+          instance = this; // Assigning to static field
+          var version = GetGameVersion(); // Calling static method
+      }
+      
+      private void InitializeGame()
+      {
+          // Instance method - use this reference if calling other instance methods
+          this.LoadGameSettings();
+      }
+  }
+  ```
+
+## 3. Method and Property Declaration Style
+
+### Consistent Access Modifier Placement
+- **Rule**: Always place access modifiers at the beginning of declarations
+- **Guidelines**:
+  - Follow consistent order: `public/private/protected` → `static` → `virtual/override/abstract` → return type → member name
+  - Use explicit access modifiers even when default is sufficient
+  - Maintain consistent spacing and formatting
+- **Examples**:
+  ```csharp
+  public class ExampleClass : MonoBehaviour
+  {
+      // Fields
+      [SerializeField] private int maxCount = 100;
+      [SerializeField] protected bool isInitialized = false;
+      public static readonly string ClassName = "ExampleClass";
+      
+      // Properties
+      public int CurrentCount { get; private set; }
+      public bool IsActive { get; protected set; }
+      private string internalName;
+      
+      // Methods
+      public virtual void Initialize()
+      {
+          this.internalName = "Example";
+          this.IsActive = true;
+          this.CurrentCount = 0;
+      }
+      
+      protected virtual void ProcessData()
+      {
+          this.CurrentCount++;
+          this.UpdateInternalState();
+      }
+      
+      private void UpdateInternalState()
+      {
+          // Implementation details
+      }
+      
+      public static void StaticMethod()
+      {
+          // Static method implementation
+      }
+  }
+  ```
+
+### Parameter and Local Variable Naming
+- **Rule**: Use clear, descriptive names for all variables
+- **Guidelines**:
+  - Use camelCase for parameters and local variables
+  - Avoid abbreviations unless they are widely understood
+  - Use meaningful names that describe the variable's purpose
+  - Distinguish between parameters and local variables through naming
+- **Examples**:
+  ```csharp
+  public class PlayerController : MonoBehaviour
+  {
+      [SerializeField] private float moveSpeed = 5f;
+      [SerializeField] private float jumpForce = 10f;
+      
+      public void MovePlayer(Vector3 movementDirection, float deltaTime)
+      {
+          // Clear parameter names
+          var adjustedSpeed = this.moveSpeed * deltaTime;
+          var finalMovement = movementDirection * adjustedSpeed;
+          
+          this.transform.Translate(finalMovement);
+      }
+      
+      public void ApplyJumpForce(float jumpMultiplier = 1f)
+      {
+          // Clear local variable names
+          var calculatedForce = this.jumpForce * jumpMultiplier;
+          var jumpVector = Vector3.up * calculatedForce;
+          
+          this.GetComponent<Rigidbody>().AddForce(jumpVector);
+      }
+  }
+  ```
+
+## 4. Code Organization and Formatting
+
+### Consistent Indentation and Spacing
+- **Rule**: Maintain consistent indentation and spacing throughout the codebase
+- **Guidelines**:
+  - Use 4 spaces for indentation (not tabs)
+  - Place opening braces on the same line as the declaration
+  - Use consistent spacing around operators and keywords
+  - Align related code elements for better readability
+  - **MANDATORY**: Always use new lines for code blocks after if conditions and loops
+  - **MANDATORY**: Never write single-line if statements or loops on the same line
+- **Examples**:
+  ```csharp
+  public class FormattedClass : MonoBehaviour
+  {
+      [SerializeField] private int value1 = 10;
+      [SerializeField] private int value2 = 20;
+      
+      public int CalculateResult(int multiplier)
+      {
+          var result = (this.value1 + this.value2) * multiplier;
+          
+          if (result > 100)
+          {
+              this.ProcessLargeResult(result);
+          }
+          else
+          {
+              this.ProcessSmallResult(result);
+          }
+          
+          return result;
+      }
+      
+      private void ProcessLargeResult(int resultValue)
+      {
+          Debug.Log($"Large result: {resultValue}");
+          this.OnLargeResultCalculated?.Invoke(resultValue);
+      }
+      
+      private void ProcessSmallResult(int resultValue)
+      {
+          Debug.Log($"Small result: {resultValue}");
+          this.OnSmallResultCalculated?.Invoke(resultValue);
+      }
+  }
+  ```
+
+### Mandatory New Line Rules for Control Structures
+- **Rule**: Always use new lines for all code blocks after if conditions, loops, and other control structures
+- **Guidelines**:
+  - **NEVER** write single-line if statements on the same line
+  - **NEVER** write single-line loop bodies on the same line
+  - **ALWAYS** use braces `{}` for all control structures
+  - **ALWAYS** place opening brace on the same line as the control structure
+  - **ALWAYS** place closing brace on a new line with proper indentation
+  - This improves debugging by allowing breakpoints on individual statements
+  - This improves code readability and maintainability
+- **Examples**:
+  ```csharp
+  // ❌ WRONG - Single-line if statements (FORBIDDEN)
+  public void BadIfStatement()
+  {
+      if (condition) DoSomething(); // NEVER DO THIS
+      if (condition) return; // NEVER DO THIS
+      if (condition) this.value = 42; // NEVER DO THIS
+  }
+  
+  // ✅ CORRECT - Always use new lines and braces
+  public void GoodIfStatement()
+  {
+      if (condition)
+      {
+          DoSomething();
+      }
+      
+      if (condition)
+      {
+          return;
+      }
+      
+      if (condition)
+      {
+          this.value = 42;
+      }
+  }
+  
+  // ❌ WRONG - Single-line for loops (FORBIDDEN)
+  public void BadForLoop()
+  {
+      for (int i = 0; i < items.Length; i++) ProcessItem(items[i]); // NEVER DO THIS
+      for (int i = 0; i < count; i++) this.total += i; // NEVER DO THIS
+  }
+  
+  // ✅ CORRECT - Always use new lines and braces for loops
+  public void GoodForLoop()
+  {
+      for (int i = 0; i < items.Length; i++)
+      {
+          ProcessItem(items[i]);
+      }
+      
+      for (int i = 0; i < count; i++)
+      {
+          this.total += i;
+      }
+  }
+  
+  // ❌ WRONG - Single-line foreach loops (FORBIDDEN)
+  public void BadForEachLoop()
+  {
+      foreach (var item in items) ProcessItem(item); // NEVER DO THIS
+      foreach (var enemy in enemies) enemy.Update(); // NEVER DO THIS
+  }
+  
+  // ✅ CORRECT - Always use new lines and braces for foreach
+  public void GoodForEachLoop()
+  {
+      foreach (var item in items)
+      {
+          ProcessItem(item);
+      }
+      
+      foreach (var enemy in enemies)
+      {
+          enemy.Update();
+      }
+  }
+  
+  // ❌ WRONG - Single-line while loops (FORBIDDEN)
+  public void BadWhileLoop()
+  {
+      while (condition) DoSomething(); // NEVER DO THIS
+      while (isRunning) this.ProcessFrame(); // NEVER DO THIS
+  }
+  
+  // ✅ CORRECT - Always use new lines and braces for while
+  public void GoodWhileLoop()
+  {
+      while (condition)
+      {
+          DoSomething();
+      }
+      
+      while (isRunning)
+      {
+          this.ProcessFrame();
+      }
+  }
+  
+  // ❌ WRONG - Single-line do-while loops (FORBIDDEN)
+  public void BadDoWhileLoop()
+  {
+      do DoSomething(); while (condition); // NEVER DO THIS
+  }
+  
+  // ✅ CORRECT - Always use new lines and braces for do-while
+  public void GoodDoWhileLoop()
+  {
+      do
+      {
+          DoSomething();
+      }
+      while (condition);
+  }
+  
+  // ❌ WRONG - Single-line switch cases (FORBIDDEN)
+  public void BadSwitchStatement()
+  {
+      switch (value)
+      {
+          case 1: DoAction1(); break; // NEVER DO THIS
+          case 2: DoAction2(); break; // NEVER DO THIS
+          default: DoDefault(); break; // NEVER DO THIS
+      }
+  }
+  
+  // ✅ CORRECT - Always use new lines for switch cases
+  public void GoodSwitchStatement()
+  {
+      switch (value)
+      {
+          case 1:
+          {
+              DoAction1();
+              break;
+          }
+          case 2:
+          {
+              DoAction2();
+              break;
+          }
+          default:
+          {
+              DoDefault();
+              break;
+          }
+      }
+  }
+  
+  // ❌ WRONG - Single-line try-catch (FORBIDDEN)
+  public void BadTryCatch()
+  {
+      try { DoSomething(); } catch (Exception ex) { LogError(ex); } // NEVER DO THIS
+  }
+  
+  // ✅ CORRECT - Always use new lines for try-catch
+  public void GoodTryCatch()
+  {
+      try
+      {
+          DoSomething();
+      }
+      catch (Exception ex)
+      {
+          LogError(ex);
+      }
+  }
+  
+  // ❌ WRONG - Single-line using statements (FORBIDDEN)
+  public void BadUsingStatement()
+  {
+      using (var stream = new FileStream(path, FileMode.Open)) { ReadData(stream); } // NEVER DO THIS
+  }
+  
+  // ✅ CORRECT - Always use new lines for using statements
+  public void GoodUsingStatement()
+  {
+      using (var stream = new FileStream(path, FileMode.Open))
+      {
+          ReadData(stream);
+      }
+  }
+  
+  // ✅ CORRECT - Complex nested control structures
+  public void ComplexControlStructures()
+  {
+      if (this.IsPlayerAlive())
+      {
+          foreach (var enemy in this.nearbyEnemies)
+          {
+              if (enemy.IsInRange())
+              {
+                  for (int i = 0; i < this.weaponCount; i++)
+                  {
+                      if (this.weapons[i].CanFire())
+                      {
+                          this.weapons[i].FireAt(enemy);
+                      }
+                  }
+              }
+          }
+      }
+  }
+  
+  // ✅ CORRECT - Early returns with proper formatting
+  public bool ValidateInput(string input)
+  {
+      if (string.IsNullOrEmpty(input))
+      {
+          return false;
+      }
+      
+      if (input.Length < 3)
+      {
+          return false;
+      }
+      
+      if (!this.IsValidFormat(input))
+      {
+          return false;
+      }
+      
+      return true;
+  }
+  ```
+
+### Mandatory Line Breaking for Long Statements
+- **Rule**: Always break long statements into multiple lines for better readability and maintainability
+- **Guidelines**:
+  - **ALWAYS** break statements that exceed reasonable line length (typically 120-150 characters)
+  - **ALWAYS** break statements with multiple nested object references or method chaining
+  - **ALWAYS** break complex expressions with multiple operators
+  - **ALWAYS** break method calls with many parameters
+  - **ALWAYS** break LINQ expressions with multiple operations
+  - **ALWAYS** break string concatenations or interpolations
+  - **ALWAYS** break complex conditional expressions
+  - Use proper indentation to show hierarchy and relationships
+  - Align related elements for better visual grouping
+  - This improves code readability and makes complex logic easier to understand
+- **Examples**:
+  ```csharp
+  // ❌ WRONG - Long statements on single line (FORBIDDEN)
+  public void BadLongStatement()
+  {
+      var result = this.playerController.GetComponent<PlayerHealth>().GetCurrentHealthPercentage() * this.damageMultiplier + this.bonusDamage;
+      var message = $"Player {this.playerName} with level {this.playerLevel} has health {this.playerHealth} and took damage {this.damageAmount} from enemy {this.enemyName}";
+      if (this.playerController != null && this.playerController.IsAlive() && this.playerController.GetComponent<PlayerHealth>().GetCurrentHealth() > 0 && this.playerController.GetComponent<PlayerHealth>().GetCurrentHealth() < this.playerController.GetComponent<PlayerHealth>().GetMaxHealth())
+      {
+          this.playerController.GetComponent<PlayerHealth>().TakeDamage(this.damageAmount);
+      }
+  }
+  
+  // ✅ CORRECT - Broken into multiple lines with proper indentation
+  public void GoodLongStatement()
+  {
+      var playerHealth = this.playerController.GetComponent<PlayerHealth>();
+      var healthPercentage = playerHealth.GetCurrentHealthPercentage();
+      var result = healthPercentage * this.damageMultiplier + this.bonusDamage;
+      
+      var message = $"Player {this.playerName} with level {this.playerLevel} " +
+                   $"has health {this.playerHealth} and took damage {this.damageAmount} " +
+                   $"from enemy {this.enemyName}";
+      
+      if (this.playerController != null && 
+          this.playerController.IsAlive() && 
+          playerHealth.GetCurrentHealth() > 0 && 
+          playerHealth.GetCurrentHealth() < playerHealth.GetMaxHealth())
+      {
+          playerHealth.TakeDamage(this.damageAmount);
+      }
+  }
+  
+  // ❌ WRONG - Method chaining on single line (FORBIDDEN)
+  public void BadMethodChaining()
+  {
+      var result = this.GetPlayer().GetComponent<PlayerController>().GetInventory().GetItems().Where(item => item.IsWeapon()).Select(weapon => weapon.GetDamage()).Sum();
+      var enemies = GameObject.FindGameObjectsWithTag("Enemy").Where(enemy => enemy.GetComponent<EnemyAI>().IsAggressive()).OrderBy(enemy => Vector3.Distance(enemy.transform.position, this.transform.position)).Take(5);
+  }
+  
+  // ✅ CORRECT - Method chaining broken into multiple lines
+  public void GoodMethodChaining()
+  {
+      var player = this.GetPlayer();
+      var playerController = player.GetComponent<PlayerController>();
+      var inventory = playerController.GetInventory();
+      var items = inventory.GetItems();
+      
+      var result = items
+          .Where(item => item.IsWeapon())
+          .Select(weapon => weapon.GetDamage())
+          .Sum();
+      
+      var enemies = GameObject.FindGameObjectsWithTag("Enemy")
+          .Where(enemy => enemy.GetComponent<EnemyAI>().IsAggressive())
+          .OrderBy(enemy => Vector3.Distance(enemy.transform.position, this.transform.position))
+          .Take(5);
+  }
+  
+  // ❌ WRONG - Complex expressions on single line (FORBIDDEN)
+  public void BadComplexExpression()
+  {
+      var damage = (this.baseDamage + this.weaponDamage * this.weaponLevel) * (1f + this.damageBonus / 100f) * (this.isCritical ? this.critMultiplier : 1f) * (this.enemyArmor > 0 ? 1f - (this.enemyArmor * 0.01f) : 1f);
+      var isValid = this.playerController != null && this.playerController.IsAlive() && this.playerController.GetComponent<PlayerHealth>().GetCurrentHealth() > 0 && this.playerController.GetComponent<PlayerHealth>().GetCurrentHealth() < this.playerController.GetComponent<PlayerHealth>().GetMaxHealth();
+  }
+  
+  // ✅ CORRECT - Complex expressions broken into multiple lines
+  public void GoodComplexExpression()
+  {
+      var totalBaseDamage = this.baseDamage + this.weaponDamage * this.weaponLevel;
+      var damageWithBonus = totalBaseDamage * (1f + this.damageBonus / 100f);
+      var damageWithCrit = damageWithBonus * (this.isCritical ? this.critMultiplier : 1f);
+      var armorReduction = this.enemyArmor > 0 ? 1f - (this.enemyArmor * 0.01f) : 1f;
+      var damage = damageWithCrit * armorReduction;
+      
+      var playerController = this.playerController;
+      var playerHealth = playerController?.GetComponent<PlayerHealth>();
+      var currentHealth = playerHealth?.GetCurrentHealth() ?? 0;
+      var maxHealth = playerHealth?.GetMaxHealth() ?? 1;
+      
+      var isValid = playerController != null && 
+                   playerController.IsAlive() && 
+                   currentHealth > 0 && 
+                   currentHealth < maxHealth;
+  }
+  
+  // ❌ WRONG - Method calls with many parameters on single line (FORBIDDEN)
+  public void BadMethodCall()
+  {
+      this.CreatePlayer("John", 25, Vector3.zero, Quaternion.identity, 100, 50, 10, 5, true, false, Color.blue, "Warrior");
+      this.SetupUI(this.mainCanvas, this.playerHealthBar, this.enemyHealthBar, this.damageText, this.scoreText, this.levelText, this.experienceBar, this.inventoryPanel, this.settingsPanel, this.pauseMenu);
+  }
+  
+  // ✅ CORRECT - Method calls with parameters broken into multiple lines
+  public void GoodMethodCall()
+  {
+      this.CreatePlayer(
+          name: "John",
+          level: 25,
+          position: Vector3.zero,
+          rotation: Quaternion.identity,
+          health: 100,
+          mana: 50,
+          strength: 10,
+          intelligence: 5,
+          isAlive: true,
+          isInvulnerable: false,
+          playerColor: Color.blue,
+          characterClass: "Warrior"
+      );
+      
+      this.SetupUI(
+          mainCanvas: this.mainCanvas,
+          playerHealthBar: this.playerHealthBar,
+          enemyHealthBar: this.enemyHealthBar,
+          damageText: this.damageText,
+          scoreText: this.scoreText,
+          levelText: this.levelText,
+          experienceBar: this.experienceBar,
+          inventoryPanel: this.inventoryPanel,
+          settingsPanel: this.settingsPanel,
+          pauseMenu: this.pauseMenu
+      );
+  }
+  
+  // ❌ WRONG - LINQ expressions on single line (FORBIDDEN)
+  public void BadLinqExpression()
+  {
+      var result = this.enemies.Where(enemy => enemy.IsAlive() && enemy.GetComponent<EnemyAI>().IsAggressive()).Select(enemy => new { Enemy = enemy, Distance = Vector3.Distance(enemy.transform.position, this.transform.position) }).OrderBy(x => x.Distance).Take(5).Select(x => x.Enemy.GetComponent<EnemyHealth>().GetMaxHealth()).Sum();
+  }
+  
+  // ✅ CORRECT - LINQ expressions broken into multiple lines
+  public void GoodLinqExpression()
+  {
+      var result = this.enemies
+          .Where(enemy => enemy.IsAlive() && 
+                         enemy.GetComponent<EnemyAI>().IsAggressive())
+          .Select(enemy => new 
+          { 
+              Enemy = enemy, 
+              Distance = Vector3.Distance(enemy.transform.position, this.transform.position) 
+          })
+          .OrderBy(x => x.Distance)
+          .Take(5)
+          .Select(x => x.Enemy.GetComponent<EnemyHealth>().GetMaxHealth())
+          .Sum();
+  }
+  
+  // ❌ WRONG - String concatenation on single line (FORBIDDEN)
+  public void BadStringConcatenation()
+  {
+      var message = "Player " + this.playerName + " with level " + this.playerLevel + " has health " + this.playerHealth + " and took damage " + this.damageAmount + " from enemy " + this.enemyName + " at position " + this.enemyPosition + " with weapon " + this.weaponName;
+  }
+  
+  // ✅ CORRECT - String concatenation broken into multiple lines
+  public void GoodStringConcatenation()
+  {
+      var message = "Player " + this.playerName + 
+                   " with level " + this.playerLevel + 
+                   " has health " + this.playerHealth + 
+                   " and took damage " + this.damageAmount + 
+                   " from enemy " + this.enemyName + 
+                   " at position " + this.enemyPosition + 
+                   " with weapon " + this.weaponName;
+  }
+  
+  // ❌ WRONG - String interpolation on single line (FORBIDDEN)
+  public void BadStringInterpolation()
+  {
+      var message = $"Player {this.playerName} with level {this.playerLevel} has health {this.playerHealth} and took damage {this.damageAmount} from enemy {this.enemyName} at position {this.enemyPosition} with weapon {this.weaponName}";
+  }
+  
+  // ✅ CORRECT - String interpolation broken into multiple lines
+  public void GoodStringInterpolation()
+  {
+      var message = $"Player {this.playerName} with level {this.playerLevel} " +
+                   $"has health {this.playerHealth} and took damage {this.damageAmount} " +
+                   $"from enemy {this.enemyName} at position {this.enemyPosition} " +
+                   $"with weapon {this.weaponName}";
+  }
+  
+  // ❌ WRONG - Complex conditional expressions on single line (FORBIDDEN)
+  public void BadConditionalExpression()
+  {
+      var canAttack = this.playerController != null && this.playerController.IsAlive() && this.playerController.GetComponent<PlayerHealth>().GetCurrentHealth() > 0 && this.playerController.GetComponent<PlayerController>().GetCurrentWeapon() != null && this.playerController.GetComponent<PlayerController>().GetCurrentWeapon().CanFire() && Time.time >= this.lastAttackTime + this.attackCooldown;
+  }
+  
+  // ✅ CORRECT - Complex conditional expressions broken into multiple lines
+  public void GoodConditionalExpression()
+  {
+      var playerController = this.playerController;
+      var playerHealth = playerController?.GetComponent<PlayerHealth>();
+      var currentWeapon = playerController?.GetComponent<PlayerController>()?.GetCurrentWeapon();
+      
+      var canAttack = playerController != null && 
+                     playerController.IsAlive() && 
+                     playerHealth?.GetCurrentHealth() > 0 && 
+                     currentWeapon != null && 
+                     currentWeapon.CanFire() && 
+                     Time.time >= this.lastAttackTime + this.attackCooldown;
+  }
+  
+  // ❌ WRONG - Array/Collection initialization on single line (FORBIDDEN)
+  public void BadCollectionInitialization()
+  {
+      var items = new List<string> { "Sword", "Shield", "Potion", "Bow", "Arrow", "Armor", "Helmet", "Boots", "Gloves", "Ring", "Amulet", "Scroll" };
+      var positions = new Vector3[] { new Vector3(0, 0, 0), new Vector3(1, 0, 0), new Vector3(2, 0, 0), new Vector3(3, 0, 0), new Vector3(4, 0, 0), new Vector3(5, 0, 0) };
+  }
+  
+  // ✅ CORRECT - Array/Collection initialization broken into multiple lines
+  public void GoodCollectionInitialization()
+  {
+      var items = new List<string>
+      {
+          "Sword",
+          "Shield", 
+          "Potion",
+          "Bow",
+          "Arrow",
+          "Armor",
+          "Helmet",
+          "Boots",
+          "Gloves",
+          "Ring",
+          "Amulet",
+          "Scroll"
+      };
+      
+      var positions = new Vector3[]
+      {
+          new Vector3(0, 0, 0),
+          new Vector3(1, 0, 0),
+          new Vector3(2, 0, 0),
+          new Vector3(3, 0, 0),
+          new Vector3(4, 0, 0),
+          new Vector3(5, 0, 0)
+      };
+  }
+  ```
+
+### Method Organization
+- **Rule**: Organize methods in logical groups with consistent ordering
+- **Guidelines**:
+  - Group related methods together
+  - Order methods by importance and usage frequency
+  - Use regions to separate different functional areas
+  - Place public methods before private methods within groups
+- **Examples**:
+  ```csharp
+  public class OrganizedClass : MonoBehaviour
+  {
+      #region Fields
+      [SerializeField] private int baseValue;
+      [SerializeField] private bool isActive;
+      #endregion
+      
+      #region Events
+      public event System.Action<int> OnValueChanged;
+      public event System.Action<bool> OnActiveStateChanged;
+      #endregion
+      
+      #region Public Methods
+      public void SetValue(int newValue)
+      {
+          this.baseValue = newValue;
+          this.OnValueChanged?.Invoke(this.baseValue);
+      }
+      
+      public void SetActive(bool active)
+      {
+          this.isActive = active;
+          this.OnActiveStateChanged?.Invoke(this.isActive);
+      }
+      #endregion
+      
+      #region Private Methods
+      private void InitializeValues()
+      {
+          this.baseValue = 0;
+          this.isActive = false;
+      }
+      
+      private void ValidateInput(int input)
+      {
+          if (input < 0)
+          {
+              Debug.LogWarning("Input value cannot be negative");
+          }
+      }
+      #endregion
+  }
+  ```
+
+## 5. Elegant and Modern Code Style
+
+### Write Elegant, Concise Code
+- **Rule**: Prioritize readability, maintainability, and modern C# patterns
+- **Guidelines**:
+  - Use meaningful variable and method names that express intent clearly
+  - Keep methods short and focused on a single responsibility
+  - Avoid deep nesting by using early returns and guard clauses
+  - Use modern C# language features for cleaner, more expressive code
+  - Prefer composition over inheritance
+  - Write self-documenting code that explains "why" not just "how"
+- **Examples**:
+  ```csharp
+  // ❌ Complex nested logic with unclear intent
+  public bool CanAttack(Enemy enemy)
+  {
+      if (enemy != null)
+      {
+          if (enemy.IsAlive)
+          {
+              if (Vector3.Distance(this.transform.position, enemy.transform.position) <= this.attackRange)
+              {
+                  if (Time.time >= this.lastAttackTime + this.attackCooldown)
+                  {
+                      return true;
+                  }
+              }
+          }
+      }
+      return false;
+  }
+  
+  // ✅ Elegant early returns with clear intent
+  public bool CanAttack(Enemy enemy)
+  {
+      if (!this.IsValidTarget(enemy)) return false;
+      if (!this.IsWithinAttackRange(enemy)) return false;
+      if (!this.IsAttackCooldownReady()) return false;
+      
+      return true;
+  }
+  
+  private bool IsValidTarget(Enemy enemy) => 
+      enemy != null && enemy.IsAlive;
+  
+  private bool IsWithinAttackRange(Enemy enemy) => 
+      (this.transform.position - enemy.transform.position).sqrMagnitude <= this.attackRange * this.attackRange;
+  
+  private bool IsAttackCooldownReady() => 
+      Time.time >= this.lastAttackTime + this.attackCooldown;
+  ```
+
+### Modern C# Language Features
+- **Rule**: Use modern C# syntax and patterns for cleaner, more efficient code
+- **Guidelines**:
+  - Use pattern matching over traditional type checking
+  - Prefer switch expressions over switch statements
+  - Use record types for immutable data structures
+  - Use nullable reference types for better null safety
+  - Use collection expressions (C# 12+) over traditional initialization
+  - Use primary constructors when available
+  - Use expression-bodied members for simple implementations
+- **Examples**:
+  ```csharp
+  // ❌ Traditional verbose approach
+  public string ProcessGameObject(GameObject obj)
+  {
+      if (obj == null)
+      {
+          return "No object";
+      }
+      
+      if (obj.TryGetComponent<Player>(out Player player))
+      {
+          if (player.Level > 10)
+          {
+              return $"Advanced player: {player.Name}";
+          }
+          else
+          {
+              return $"Novice player: {player.Name}";
+          }
+      }
+      else if (obj.TryGetComponent<Enemy>(out Enemy enemy))
+      {
+          return $"Enemy: {enemy.Type}";
+      }
+      else
+      {
+          return "Unknown object";
+      }
+  }
+  
+  // ✅ Modern C# with pattern matching and switch expressions
+  public string ProcessGameObject(GameObject obj) => obj switch
+  {
+      null => "No object",
+      { } when obj.TryGetComponent<Player>(out var player) => player switch
+      {
+          { Level: > 10 } => $"Advanced player: {player.Name}",
+          _ => $"Novice player: {player.Name}"
+      },
+      { } when obj.TryGetComponent<Enemy>(out var enemy) => $"Enemy: {enemy.Type}",
+      _ => "Unknown object"
+  };
+  
+  // ❌ Traditional class with boilerplate
+  public class PlayerData
+  {
+      public string Name { get; }
+      public int Level { get; }
+      public float Experience { get; }
+      
+      public PlayerData(string name, int level, float experience)
+      {
+          Name = name;
+          Level = level;
+          Experience = experience;
+      }
+      
+      public override bool Equals(object obj)
+      {
+          return obj is PlayerData data &&
+                 Name == data.Name &&
+                 Level == data.Level &&
+                 Experience == data.Experience;
+      }
+      
+      public override int GetHashCode()
+      {
+          return HashCode.Combine(Name, Level, Experience);
+      }
+      
+      public override string ToString()
+      {
+          return $"PlayerData(Name: {Name}, Level: {Level}, Experience: {Experience})";
+      }
+  }
+  
+  // ✅ Modern record with primary constructor (C# 12+)
+  public record PlayerData(string Name, int Level, float Experience)
+  {
+      public bool IsAdvanced => Level > 10;
+      public float ExperienceToNextLevel => CalculateExperienceToNext();
+      
+      private float CalculateExperienceToNext() => (Level + 1) * 100f - Experience;
+  }
+  
+  // ❌ Traditional collection initialization
+  public void InitializeGameObjects()
+  {
+      var enemies = new List<GameObject>();
+      enemies.Add(enemy1);
+      enemies.Add(enemy2);
+      enemies.Add(enemy3);
+      
+      var players = new List<GameObject>();
+      players.Add(player1);
+      players.Add(player2);
+  }
+  
+  // ✅ Modern collection expressions (C# 12+)
+  public void InitializeGameObjects()
+  {
+      var enemies = [enemy1, enemy2, enemy3];
+      var players = [player1, player2];
+      
+      this.ProcessGameObjects([..enemies, ..players]);
+  }
+  ```
+
+### Expression-Bodied Members
+- **Rule**: Use expression-bodied members for simple, single-expression implementations
+- **Guidelines**:
+  - Use for properties that return simple expressions
+  - Use for methods that return a single expression
+  - Use for constructors with simple initialization
+  - Keep expressions readable and not overly complex
+- **Examples**:
+  ```csharp
+  public class ElegantPlayerController : MonoBehaviour
+  {
+      [SerializeField] private float moveSpeed = 5f;
+      [SerializeField] private float jumpForce = 10f;
+      private bool isGrounded;
+      
+      // ✅ Expression-bodied properties
+      public bool CanMove => this.isGrounded && this.moveSpeed > 0f;
+      public bool CanJump => this.isGrounded;
+      public float CurrentSpeed => this.moveSpeed * this.GetMovementMultiplier();
+      
+      // ✅ Expression-bodied methods
+      private float GetMovementMultiplier() => this.isGrounded ? 1f : 0.5f;
+      
+      private bool IsValidMovement(Vector3 direction) => 
+          direction.magnitude > 0.1f && this.CanMove;
+      
+      private Vector3 CalculateJumpVelocity() => 
+          Vector3.up * this.jumpForce;
+      
+      // ✅ Expression-bodied constructor for simple initialization
+      public ElegantPlayerController() => this.isGrounded = true;
+      
+      public void Move(Vector3 direction)
+      {
+          if (!this.IsValidMovement(direction)) return;
+          
+          var movement = direction.normalized * this.CurrentSpeed * Time.deltaTime;
+          this.transform.Translate(movement);
+      }
+  }
+  ```
+
+### Null Safety and Modern Error Handling
+- **Rule**: Use modern null safety features and elegant error handling patterns
+- **Guidelines**:
+  - Use nullable reference types to prevent null reference exceptions
+  - Use null-conditional operators for safe navigation
+  - Use null-coalescing operators for default values
+  - Use pattern matching for null checks
+  - Prefer Result types over exceptions for expected failures
+- **Examples**:
+  ```csharp
+  // ❌ Traditional null checking with potential crashes
+  public class TraditionalManager : MonoBehaviour
+  {
+      public void ProcessPlayer(Player player)
+      {
+          if (player != null)
+          {
+              if (player.Inventory != null)
+              {
+                  if (player.Inventory.Items != null)
+                  {
+                      foreach (var item in player.Inventory.Items)
+                      {
+                          if (item != null)
+                          {
+                              ProcessItem(item);
+                          }
+                      }
+                  }
+              }
+          }
+      }
+  }
+  
+  // ✅ Modern null safety with elegant patterns
+  public class ModernManager : MonoBehaviour
+  {
+      public void ProcessPlayer(Player? player)
+      {
+          var items = player?.Inventory?.Items ?? [];
+          
+          foreach (var item in items)
+          {
+              this.ProcessItem(item);
+          }
+      }
+      
+      private void ProcessItem(Item item)
+      {
+          var result = this.ValidateItem(item);
+          
+          if (result.IsSuccess)
+          {
+              this.ApplyItemEffects(item);
+          }
+          else
+          {
+              this.LogItemError(result.ErrorMessage);
+          }
+      }
+      
+      private Result ValidateItem(Item item) => item switch
+      {
+          null => Result.Failure("Item is null"),
+          { IsValid: false } => Result.Failure("Item is invalid"),
+          { Level: > 100 } => Result.Failure("Item level too high"),
+          _ => Result.Success()
+      };
+  }
+  
+  // Modern Result type for elegant error handling
+  public readonly struct Result
+  {
+      public bool IsSuccess { get; }
+      public string? ErrorMessage { get; }
+      
+      private Result(bool isSuccess, string? errorMessage = null)
+      {
+          this.IsSuccess = isSuccess;
+          this.ErrorMessage = errorMessage;
+      }
+      
+      public static Result Success() => new(true);
+      public static Result Failure(string message) => new(false, message);
+      
+      public static implicit operator bool(Result result) => result.IsSuccess;
+  }
+  ```
+
+### Functional Programming Patterns
+- **Rule**: Use functional programming concepts where appropriate for cleaner code
+- **Guidelines**:
+  - Prefer pure functions that don't have side effects
+  - Use immutable data structures when possible
+  - Use LINQ for data transformation (but avoid in hot paths)
+  - Use local functions for complex logic within methods
+  - Prefer declarative over imperative code
+- **Examples**:
+  ```csharp
+  public class FunctionalGameLogic : MonoBehaviour
+  {
+      // ✅ Pure function - no side effects, predictable output
+      public static float CalculateDamage(float baseDamage, float armor, float critMultiplier, bool isCritical) =>
+          isCritical 
+              ? baseDamage * critMultiplier * (1f - armor * 0.01f)
+              : baseDamage * (1f - armor * 0.01f);
+      
+      // ✅ Immutable data structure
+      public readonly record struct GameState(
+          int PlayerHealth,
+          int EnemyHealth,
+          float GameTime,
+          bool IsGameOver
+      )
+      {
+          public GameState WithPlayerHealth(int newHealth) => 
+              this with { PlayerHealth = newHealth };
+          
+          public GameState WithEnemyHealth(int newHealth) => 
+              this with { EnemyHealth = newHealth };
+      }
+      
+      // ✅ Declarative approach with local functions
+      public IEnumerable<Enemy> GetThreatsInRange(Vector3 playerPosition, float range)
+      {
+          var allEnemies = this.GetAllEnemies();
+          var rangeSquared = range * range; // Cache squared value for performance
+          
+          return allEnemies
+              .Where(this.IsEnemyAlive)
+              .Where(this.IsWithinRange)
+              .OrderBy(this.GetThreatLevel)
+              .ThenBy(this.GetDistanceFromPlayer);
+          
+          // Local functions for complex logic
+          bool IsEnemyAlive(Enemy enemy) => enemy.Health > 0;
+          
+          bool IsWithinRange(Enemy enemy) => 
+              (enemy.transform.position - playerPosition).sqrMagnitude <= rangeSquared;
+          
+          int GetThreatLevel(Enemy enemy) => enemy.ThreatLevel;
+          
+          float GetDistanceFromPlayer(Enemy enemy) => 
+              (enemy.transform.position - playerPosition).sqrMagnitude;
+      }
+      
+      // ✅ Functional composition
+      public GameState ProcessPlayerAction(GameState currentState, PlayerAction action) =>
+          action switch
+          {
+              AttackAction attack => this.ProcessAttack(currentState, attack),
+              HealAction heal => this.ProcessHeal(currentState, heal),
+              MoveAction move => this.ProcessMove(currentState, move),
+              _ => currentState
+          };
+  }
+  ```
+
+### Modern Async Patterns
+- **Rule**: Use modern async/await patterns with UniTask for Unity
+- **Guidelines**:
+  - Prefer UniTask over Task for Unity projects
+  - Use async/await instead of coroutines for complex async operations
+  - Use cancellation tokens for long-running operations
+  - Use ConfigureAwait(false) when appropriate
+  - Handle exceptions gracefully in async methods
+- **Examples**:
+  ```csharp
+  // ❌ Legacy coroutine approach
+  public class LegacyAsyncManager : MonoBehaviour
+  {
+      public void StartLoadingSequence()
+      {
+          StartCoroutine(LoadGameDataCoroutine());
+      }
+      
+      private IEnumerator LoadGameDataCoroutine()
+      {
+          yield return StartCoroutine(LoadPlayerData());
+          yield return StartCoroutine(LoadLevelData());
+          yield return StartCoroutine(LoadAudioData());
+          
+          OnLoadingComplete?.Invoke();
+      }
+  }
+  
+  // ✅ Modern async/await with UniTask
+  public class ModernAsyncManager : MonoBehaviour
+  {
+      public async UniTaskVoid StartLoadingSequenceAsync()
+      {
+          try
+          {
+              this.ShowLoadingIndicator();
+              
+              await this.LoadAllGameDataAsync();
+              
+              this.HideLoadingIndicator();
+              this.OnLoadingComplete?.Invoke();
+          }
+          catch (OperationCanceledException)
+          {
+              this.HandleLoadingCancelled();
+          }
+          catch (Exception ex)
+          {
+              this.HandleLoadingError(ex);
+          }
+      }
+      
+      private async UniTask LoadAllGameDataAsync()
+      {
+          // Parallel loading for better performance
+          var loadTasks = new[]
+          {
+              this.LoadPlayerDataAsync(),
+              this.LoadLevelDataAsync(),
+              this.LoadAudioDataAsync()
+          };
+          
+          await UniTask.WhenAll(loadTasks);
+      }
+      
+      private async UniTask LoadPlayerDataAsync()
+      {
+          await UniTask.Delay(1000); // Simulate loading
+          // Actual loading logic here
+      }
+  }
+  ```
+
+### Inline Code vs Intermediate Variables Balance
+- **Rule**: Balance between inline code and intermediate variables based on complexity and debugging needs
+- **Guidelines**:
+  - Use intermediate variables for complex calculations that need debugging
+  - Use intermediate variables when the same expression is used multiple times
+  - Use intermediate variables for better code readability and maintainability
+  - Allow inline code for simple, fast, and easily understandable operations
+  - Consider performance implications when choosing between inline and intermediate variables
+  - Use meaningful variable names for intermediate variables to improve code clarity
+- **Examples**:
+  ```csharp
+  // ❌ Overly complex inline code - hard to debug and understand
+  public void ProcessPlayerDamage()
+  {
+      this.playerHealth.TakeDamage(
+          Mathf.RoundToInt(
+              (this.baseDamage + this.weaponDamage * this.weaponLevel) * 
+              (1f + this.damageBonus / 100f) * 
+              (this.isCritical ? this.critMultiplier : 1f) * 
+              (this.enemyArmor > 0 ? 1f - (this.enemyArmor * 0.01f) : 1f)
+          )
+      );
+  }
+  
+  // ✅ Balanced approach - intermediate variables for complex parts
+  public void ProcessPlayerDamage()
+  {
+      var totalBaseDamage = this.baseDamage + this.weaponDamage * this.weaponLevel;
+      var damageWithBonus = totalBaseDamage * (1f + this.damageBonus / 100f);
+      var damageWithCrit = damageWithBonus * (this.isCritical ? this.critMultiplier : 1f);
+      var armorReduction = this.enemyArmor > 0 ? 1f - (this.enemyArmor * 0.01f) : 1f;
+      var finalDamage = Mathf.RoundToInt(damageWithCrit * armorReduction);
+      
+      this.playerHealth.TakeDamage(finalDamage);
+  }
+  
+  // ❌ Unnecessary intermediate variables for simple operations
+  public bool IsPlayerAlive()
+  {
+      var health = this.playerHealth.CurrentHealth;
+      var isAlive = health > 0;
+      return isAlive;
+  }
+  
+  // ✅ Simple inline code for straightforward operations
+  public bool IsPlayerAlive() => this.playerHealth.CurrentHealth > 0;
+  
+  // ❌ Overly verbose intermediate variables
+  public void MovePlayer(Vector3 direction)
+  {
+      var normalizedDirection = direction.normalized;
+      var speed = this.moveSpeed;
+      var deltaTime = Time.deltaTime;
+      var movement = normalizedDirection * speed * deltaTime;
+      this.transform.Translate(movement);
+  }
+  
+  // ✅ Balanced - inline for simple calculations, intermediate for clarity
+  public void MovePlayer(Vector3 direction)
+  {
+      var movement = direction.normalized * this.moveSpeed * Time.deltaTime;
+      this.transform.Translate(movement);
+  }
+  
+  // ✅ Good use of intermediate variables for debugging and reuse
+  public void CalculateAndApplyPhysicsForce(Vector3 direction, float force)
+  {
+      var rigidbody = this.GetComponent<Rigidbody>();
+      if (rigidbody == null) return;
+      
+      var normalizedDirection = direction.normalized;
+      var forceVector = normalizedDirection * force;
+      var currentVelocity = rigidbody.velocity;
+      var maxVelocity = this.maxVelocity;
+      
+      // Apply force only if we haven't exceeded max velocity
+      if (currentVelocity.magnitude < maxVelocity)
+      {
+          rigidbody.AddForce(forceVector);
+      }
+      
+      // Debug information
+      Debug.Log($"Applied force: {forceVector}, Current velocity: {currentVelocity.magnitude:F2}");
+  }
+  
+  // ✅ Inline for simple, fast operations
+  public void UpdatePlayerPosition(Vector3 newPosition)
+  {
+      this.transform.position = newPosition;
+  }
+  
+  // ✅ Intermediate variables for complex calculations with multiple steps
+  public float CalculateExperienceGain(int enemyLevel, float difficultyMultiplier)
+  {
+      var baseExperience = enemyLevel * 10f;
+      var difficultyBonus = baseExperience * (difficultyMultiplier - 1f);
+      var levelDifference = this.playerLevel - enemyLevel;
+      var levelPenalty = levelDifference > 0 ? Mathf.Pow(0.9f, levelDifference) : 1f;
+      var finalExperience = (baseExperience + difficultyBonus) * levelPenalty;
+      
+      return Mathf.Max(1f, finalExperience); // Ensure minimum experience gain
+  }
+  
+  // ✅ Mixed approach - inline for simple parts, intermediate for complex parts
+  public void ProcessEnemyAI(Enemy enemy)
+  {
+      if (enemy == null || !enemy.IsAlive) return;
+      
+      var distanceToPlayer = Vector3.Distance(enemy.transform.position, this.transform.position);
+      var isInRange = distanceToPlayer <= enemy.AttackRange;
+      var canAttack = isInRange && Time.time >= enemy.LastAttackTime + enemy.AttackCooldown;
+      
+      if (canAttack)
+      {
+          // Simple inline calculation for attack
+          enemy.Attack(this, this.CalculateDamageToEnemy(enemy));
+      }
+      else if (distanceToPlayer <= enemy.DetectionRange)
+      {
+          // More complex movement calculation
+          var directionToPlayer = (this.transform.position - enemy.transform.position).normalized;
+          var movementSpeed = enemy.MovementSpeed * Time.deltaTime;
+          var newPosition = enemy.transform.position + directionToPlayer * movementSpeed;
+          enemy.transform.position = newPosition;
+      }
+  }
+  
+  // ✅ Intermediate variables for performance-critical code that needs optimization
+  public void UpdateEnemyList()
+  {
+      var currentTime = Time.time;
+      var updateInterval = 0.1f; // Update every 100ms instead of every frame
+      
+      if (currentTime - this.lastEnemyUpdateTime < updateInterval) return;
+      
+      this.lastEnemyUpdateTime = currentTime;
+      this.nearbyEnemies.Clear();
+      
+      var playerPosition = this.transform.position;
+      var detectionRangeSquared = this.detectionRange * this.detectionRange;
+      
+      foreach (var enemy in this.allEnemies)
+      {
+          var distanceSquared = (enemy.transform.position - playerPosition).sqrMagnitude;
+          if (distanceSquared <= detectionRangeSquared)
+          {
+              this.nearbyEnemies.Add(enemy);
+          }
+      }
+  }
+  ```
+
+## 6. Documentation and Comments Style
+
+### XML Documentation Format
+- **Rule**: Use consistent XML documentation format for all public members
+- **Guidelines**:
+  - Include summary, parameters, return values, and exceptions
+  - Use clear, concise language that explains intent
+  - Provide practical usage examples when helpful
+  - Maintain consistent formatting across all documentation
+  - Document the "why" behind complex business logic
+- **Examples**:
+  ```csharp
+  /// <summary>
+  /// Manages the player's health system including damage, healing, and death states.
+  /// Provides elegant health management with event-driven architecture.
+  /// </summary>
+  /// <remarks>
+  /// This component handles all health-related operations for the player character,
+  /// including taking damage, healing, and triggering death events. It uses modern
+  /// C# patterns for clean, maintainable code.
+  /// </remarks>
+  public class PlayerHealth : MonoBehaviour
+  {
+      /// <summary>
+      /// Gets the current health value as a percentage (0.0 to 1.0).
+      /// </summary>
+      /// <value>
+      /// Returns 0.0 for no health, 1.0 for full health.
+      /// This property is calculated dynamically for UI display.
+      /// </value>
+      public float HealthPercentage => (float)this.CurrentHealth / this.MaxHealth;
+      
+      /// <summary>
+      /// Applies damage to the player with modern null safety and validation.
+      /// </summary>
+      /// <param name="damageAmount">The amount of damage to apply (must be positive)</param>
+      /// <returns>
+      /// True if the player died from this damage, false otherwise.
+      /// Returns false immediately if damage amount is invalid.
+      /// </returns>
+      /// <exception cref="ArgumentException">
+      /// Thrown when damageAmount is negative or exceeds maximum possible damage.
+      /// </exception>
+      /// <example>
+      /// <code>
+      /// // Apply 25 damage and check if player died
+      /// bool playerDied = playerHealth.TakeDamage(25);
+      /// if (playerDied)
+      /// {
+      ///     GameManager.Instance.HandlePlayerDeath();
+      /// }
+      /// </code>
+      /// </example>
+      public bool TakeDamage(int damageAmount)
+      {
+          if (damageAmount < 0)
+          {
+              throw new ArgumentException("Damage amount cannot be negative", nameof(damageAmount));
+          }
+          
+          this.CurrentHealth = Mathf.Max(0, this.CurrentHealth - damageAmount);
+          this.OnHealthChanged?.Invoke(this.CurrentHealth);
+          
+          if (this.CurrentHealth <= 0)
+          {
+              this.OnPlayerDeath?.Invoke();
+              return true;
+          }
+          
+          return false;
+      }
+  }
+  ```
+
+## Enforcement Rules
+
+### Always Apply These Rules When:
+1. Writing or modifying interfaces
+2. Creating or updating class implementations
+3. Accessing class members from within the same class
+4. Writing public API methods and properties
+5. Documenting public interfaces and classes
+6. Organizing code structure and formatting
+7. Working with Unity MonoBehaviour scripts
+8. Implementing component-based architectures
+9. **MANDATORY**: Writing any new code - always use elegant and modern patterns
+10. **MANDATORY**: Refactoring legacy code to modern C# patterns
+11. **MANDATORY**: Implementing async operations and error handling
+12. **MANDATORY**: Using nullable reference types and null safety patterns
+13. **MANDATORY**: Creating data structures and configuration classes
+14. **MANDATORY**: Implementing event-driven systems and callbacks
+
+### Code Review Checklist:
+- [ ] All interface members have explicit `public` access modifier
+- [ ] All class internal member access uses `this.` reference
+- [ ] Static members are accessed without `this.` reference
+- [ ] Consistent access modifier placement throughout code
+- [ ] Clear and descriptive parameter and variable names
+- [ ] Consistent indentation and spacing (4 spaces)
+- [ ] Logical method organization and grouping
+- [ ] Complete XML documentation for all public members
+- [ ] Proper brace placement and code formatting
+- [ ] Meaningful method and property names
+- [ ] No unnecessary abbreviations in naming
+- [ ] Consistent naming conventions across the codebase
+- [ ] **MANDATORY**: Early returns and guard clauses used instead of deep nesting
+- [ ] **MANDATORY**: Modern C# language features used (pattern matching, switch expressions, records)
+- [ ] **MANDATORY**: Expression-bodied members for simple implementations
+- [ ] **MANDATORY**: Nullable reference types enabled and used consistently
+- [ ] **MANDATORY**: Modern async/await patterns with UniTask (not coroutines)
+- [ ] **MANDATORY**: Functional programming patterns where appropriate
+- [ ] **MANDATORY**: Immutable data structures using records
+- [ ] **MANDATORY**: Collection expressions (C# 12+) over traditional initialization
+- [ ] **MANDATORY**: Pure functions for calculations and data transformations
+- [ ] **MANDATORY**: Result types for error handling instead of exceptions where appropriate
+- [ ] **MANDATORY**: Self-documenting code that explains intent clearly
+- [ ] **MANDATORY**: Single responsibility principle for methods and classes
+- [ ] **MANDATORY**: Composition over inheritance patterns
+- [ ] **MANDATORY**: Modern Unity APIs and packages used consistently
+- [ ] **MANDATORY**: Balanced use of inline code vs intermediate variables based on complexity
+- [ ] **MANDATORY**: Intermediate variables for complex calculations and debugging needs
+- [ ] **MANDATORY**: Inline code for simple, fast, and easily understandable operations
+- [ ] **MANDATORY**: All if conditions use new lines and braces (no single-line if statements)
+- [ ] **MANDATORY**: All loops (for, foreach, while, do-while) use new lines and braces
+- [ ] **MANDATORY**: All switch cases use new lines and braces
+- [ ] **MANDATORY**: All try-catch blocks use new lines and braces
+- [ ] **MANDATORY**: All using statements use new lines and braces
+- [ ] **MANDATORY**: No single-line control structures on the same line
+- [ ] **MANDATORY**: Proper indentation for all nested control structures
+- [ ] **MANDATORY**: Long statements broken into multiple lines (120-150 character limit)
+- [ ] **MANDATORY**: Method chaining broken into multiple lines with proper indentation
+- [ ] **MANDATORY**: Complex expressions broken into multiple lines for readability
+- [ ] **MANDATORY**: Method calls with many parameters broken into multiple lines
+- [ ] **MANDATORY**: LINQ expressions broken into multiple lines with proper formatting
+- [ ] **MANDATORY**: String concatenations and interpolations broken when too long
+- [ ] **MANDATORY**: Complex conditional expressions broken into multiple lines
+- [ ] **MANDATORY**: Collection initializations broken into multiple lines when appropriate
+- [ ] **MANDATORY**: Proper indentation shows hierarchy and relationships
+- [ ] **MANDATORY**: Related elements aligned for better visual grouping
+
+### IDE Configuration:
+- Configure IDE to show access modifiers explicitly
+- Set up automatic `this.` reference insertion for class members
+- Enable XML documentation warnings for public members
+- Configure consistent formatting rules (4 spaces, brace placement)
+- Set up code analysis rules to enforce style guidelines
+- **MANDATORY**: Enable nullable reference types in project settings
+- **MANDATORY**: Configure C# language version to latest (C# 12+)
+- **MANDATORY**: Enable modern C# language feature suggestions
+- **MANDATORY**: Set up automatic code formatting on save
+- **MANDATORY**: Configure warnings for legacy patterns and obsolete APIs
+- **MANDATORY**: Configure IDE to enforce new lines for all control structures
+- **MANDATORY**: Set up automatic brace insertion for if/loop statements
+- **MANDATORY**: Configure code formatting to prevent single-line control structures
+- **MANDATORY**: Enable warnings for single-line if statements and loops
+- **MANDATORY**: Set up automatic indentation for nested control structures
+- **MANDATORY**: Configure line length warnings (120-150 characters)
+- **MANDATORY**: Set up automatic line breaking for long statements
+- **MANDATORY**: Configure method chaining formatting rules
+- **MANDATORY**: Set up parameter alignment for method calls
+- **MANDATORY**: Configure LINQ expression formatting
+- **MANDATORY**: Set up string concatenation/interpolation line breaking
+- **MANDATORY**: Configure collection initialization formatting
+- **MANDATORY**: Enable warnings for overly long statements
+
+### Modern C# Feature Adoption Checklist:
+- [ ] **MANDATORY**: Use pattern matching instead of type checking
+- [ ] **MANDATORY**: Use switch expressions instead of switch statements
+- [ ] **MANDATORY**: Use records for immutable data structures
+- [ ] **MANDATORY**: Use primary constructors where available
+- [ ] **MANDATORY**: Use collection expressions for initialization
+- [ ] **MANDATORY**: Use expression-bodied members for simple implementations
+- [ ] **MANDATORY**: Use nullable reference types for null safety
+- [ ] **MANDATORY**: Use local functions for complex logic within methods
+- [ ] **MANDATORY**: Use modern async/await patterns with proper error handling
+- [ ] **MANDATORY**: Use functional programming concepts where appropriate
+- [ ] **MANDATORY**: Balance inline code with intermediate variables for optimal debugging and performance
+
+### Legacy Code Modernization Checklist:
+- [ ] **MANDATORY**: Replace all `ObsoleteAttribute` marked code with modern alternatives
+- [ ] **MANDATORY**: Convert coroutines to async/await patterns
+- [ ] **MANDATORY**: Replace traditional classes with records where appropriate
+- [ ] **MANDATORY**: Update to modern Unity APIs and packages
+- [ ] **MANDATORY**: Implement null safety patterns throughout codebase
+- [ ] **MANDATORY**: Replace complex nested logic with early returns
+- [ ] **MANDATORY**: Use modern error handling patterns (Result types, etc.)
+- [ ] **MANDATORY**: Convert imperative code to declarative where possible
+- [ ] **MANDATORY**: Implement proper resource management with using statements
+- [ ] **MANDATORY**: Use modern event handling patterns with proper cleanup
+
+By following these code style rules, the codebase will be more readable, maintainable, consistent, and leverage modern C# features for better performance and developer experience across all team members.
