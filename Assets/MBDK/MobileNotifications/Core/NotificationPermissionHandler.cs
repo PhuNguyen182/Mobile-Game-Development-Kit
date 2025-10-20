@@ -154,17 +154,17 @@ namespace MBDK.MobileNotifications.Core
                 // Setup authorization options
                 var authOptions = AuthorizationOption.None;
                 
-                if (this.config.iosRequestAlert)
+                if (this._config.iosRequestAlert)
                 {
                     authOptions |= AuthorizationOption.Alert;
                 }
                 
-                if (this.config.iosRequestBadge)
+                if (this._config.iosRequestBadge)
                 {
                     authOptions |= AuthorizationOption.Badge;
                 }
                 
-                if (this.config.iosRequestSound)
+                if (this._config.iosRequestSound)
                 {
                     authOptions |= AuthorizationOption.Sound;
                 }
@@ -179,7 +179,7 @@ namespace MBDK.MobileNotifications.Core
 
                     var granted = request.Granted;
                     
-                    if (this.config.enableDebugLogs)
+                    if (this._config.enableDebugLogs)
                     {
                         Debug.Log($"📱 [NotificationPermission] iOS authorization: {(granted ? "Granted" : "Denied")}");
                         Debug.Log($"📱 [NotificationPermission] Device Token: {request.DeviceToken}");

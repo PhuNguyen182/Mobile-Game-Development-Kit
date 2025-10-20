@@ -428,7 +428,7 @@ namespace MBDK.MobileNotifications.Core
                 // Chỉ cần clear old notifications nếu cần
                 iOSNotificationCenter.RemoveAllDeliveredNotifications();
 
-                if (this.config.enableDebugLogs)
+                if (this._config.enableDebugLogs)
                 {
                     Debug.Log("📱 [NotificationScheduler] iOS notification center initialized");
                 }
@@ -454,7 +454,7 @@ namespace MBDK.MobileNotifications.Core
                     Title = data.title,
                     Body = data.body,
                     Subtitle = data.subtitle,
-                    Badge = data.badge > 0 ? data.badge : this.config.defaultBadge,
+                    Badge = data.badge > 0 ? data.badge : this._config.defaultBadge,
                     ShowInForeground = true,
                     ForegroundPresentationOption = (PresentationOption.Alert | 
                                                    PresentationOption.Sound | 
