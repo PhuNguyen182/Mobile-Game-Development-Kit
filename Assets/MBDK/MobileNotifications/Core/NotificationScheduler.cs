@@ -199,7 +199,7 @@ namespace MBDK.MobileNotifications.Core
 #if UNITY_ANDROID
                 AndroidNotificationCenter.CancelScheduledNotification(notificationId);
 #elif UNITY_IOS
-                iOSNotificationCenter.RemoveScheduledNotification(notificationId.ToString());
+                iOSNotificationCenter.RemoveScheduledNotification(notificationId);
 #endif
 
                 // Remove from tracking
@@ -316,25 +316,25 @@ namespace MBDK.MobileNotifications.Core
                 // Tạo default notification channel
                 var defaultChannel = new AndroidNotificationChannel
                 {
-                    Id = this.config.androidDefaultChannelId,
-                    Name = this.config.androidDefaultChannelName,
-                    Description = this.config.androidDefaultChannelDescription,
+                    Id = this._config.androidDefaultChannelId,
+                    Name = this._config.androidDefaultChannelName,
+                    Description = this._config.androidDefaultChannelDescription,
                     Importance = Importance.Default
                 };
 
                 AndroidNotificationCenter.RegisterNotificationChannel(defaultChannel);
 
-                if (this.config.enableDebugLogs)
+                if (this._config.enableDebugLogs)
                 {
                     Debug.Log($"📱 [NotificationScheduler] Android default channel created: {defaultChannel.Id}");
                 }
 
                 // Register custom channels
-                if (this.config.customChannels != null && this.config.customChannels.Count > 0)
+                if (this._config.customChannels is { Count: > 0 })
                 {
-                    for (int i = 0; i < this.config.customChannels.Count; i++)
+                    for (int i = 0; i < this._config.customChannels.Count; i++)
                     {
-                        var channelData = this.config.customChannels[i];
+                        var channelData = this._config.customChannels[i];
                         
                         var customChannel = new AndroidNotificationChannel
                         {
@@ -346,7 +346,7 @@ namespace MBDK.MobileNotifications.Core
 
                         AndroidNotificationCenter.RegisterNotificationChannel(customChannel);
 
-                        if (this.config.enableDebugLogs)
+                        if (this._config.enableDebugLogs)
                         {
                             Debug.Log($"📱 [NotificationScheduler] Custom channel created: {customChannel.Id}");
                         }
@@ -373,8 +373,8 @@ namespace MBDK.MobileNotifications.Core
                     Title = data.title,
                     Text = data.body,
                     FireTime = DateTime.Now.AddSeconds(data.fireTimeInSeconds),
-                    SmallIcon = string.IsNullOrWhiteSpace(data.smallIcon) ? this.config.androidSmallIcon : data.smallIcon,
-                    LargeIcon = string.IsNullOrWhiteSpace(data.largeIcon) ? this.config.androidLargeIcon : data.largeIcon
+                    SmallIcon = string.IsNullOrWhiteSpace(data.smallIcon) ? this._config.androidSmallIcon : data.smallIcon,
+                    LargeIcon = string.IsNullOrWhiteSpace(data.largeIcon) ? this._config.androidLargeIcon : data.largeIcon
                 };
 
                 // Set group key nếu có
@@ -397,7 +397,7 @@ namespace MBDK.MobileNotifications.Core
 
                 // Get channel ID
                 var channelId = string.IsNullOrWhiteSpace(data.category) 
-                    ? this.config.androidDefaultChannelId 
+                    ? this._config.androidDefaultChannelId 
                     : data.category;
 
                 // Schedule notification

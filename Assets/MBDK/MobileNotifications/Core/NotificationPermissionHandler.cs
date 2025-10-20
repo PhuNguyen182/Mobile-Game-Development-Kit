@@ -59,9 +59,9 @@ namespace MBDK.MobileNotifications.Core
                 }
 
 #if UNITY_ANDROID
-                this.hasPermission = await this.RequestAndroidPermissionAsync();
+                this._hasPermission = await this.RequestAndroidPermissionAsync();
 #elif UNITY_IOS
-                this.hasPermission = await this.RequestIOSPermissionAsync();
+                this._hasPermission = await this.RequestIOSPermissionAsync();
 #else
                 // Platform không được hỗ trợ
                 this._hasPermission = false;
@@ -95,11 +95,11 @@ namespace MBDK.MobileNotifications.Core
 #if UNITY_ANDROID
             // Android mặc định có permission (trừ khi user tắt trong settings)
             // Check permission status nếu có API
-            this.hasPermission = true;
+            this._hasPermission = true;
 #elif UNITY_IOS
             // iOS cần check authorization status
             var settings = iOSNotificationCenter.GetNotificationSettings();
-            this.hasPermission = settings.AuthorizationStatus == AuthorizationStatus.Authorized;
+            this._hasPermission = settings.AuthorizationStatus == AuthorizationStatus.Authorized;
 #else
             this._hasPermission = false;
 #endif
@@ -120,7 +120,7 @@ namespace MBDK.MobileNotifications.Core
                 // Versions cũ hơn tự động có permission
 #if UNITY_2023_2_OR_NEWER
                 // Unity 2023.2+ có API để check và request permission
-                if (!AndroidNotificationCenter.UserPermissionToPost)
+                if (AndroidNotificationCenter.UserPermissionToPost == PermissionStatus.Allowed)
                 {
                     await UniTask.Delay(100); // Delay nhỏ để UI ready
                     
