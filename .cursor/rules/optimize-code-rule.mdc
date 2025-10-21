@@ -1,0 +1,1194 @@
+---
+alwaysApply: true
+---
+
+# C# Code Optimization Rules for Unity Projects
+
+This document outlines optimization rules to enhance performance, maintainability, and code quality in Unity projects using modern C# practices.
+
+## 1. Algorithm and Data Structure Optimization
+
+### Choose Efficient Algorithms
+- **Rule**: Always select algorithms with optimal time complexity for the problem domain
+- **Guidelines**:
+  - Use `O(n log n)` sorting algorithms (QuickSort, MergeSort) over `O(n²)` algorithms (BubbleSort)
+  - Prefer `Dictionary<TKey, TValue>` for key-based lookups instead of `List<T>` linear search
+  - Use `HashSet<T>` for unique item collections and fast membership testing
+- **Examples**:
+  ```csharp
+  // ❌ Inefficient - O(n) lookup
+  var item = itemsList.FirstOrDefault(x => x.Id == targetId);
+  
+  // ✅ Efficient - O(1) lookup
+  var item = itemsDictionary[targetId];
+  ```
+
+### Optimize Data Structure Selection
+- **Rule**: Choose data structures that match your access patterns
+- **Guidelines**:
+  - `List<T>`: Random access and iteration
+  - `Dictionary<TKey, TValue>`: Key-based lookups
+  - `HashSet<T>`: Unique items and fast contains checks
+  - `Queue<T>`: FIFO operations
+  - `Stack<T>`: LIFO operations
+- **Examples**:
+  ```csharp
+  // ❌ Using List for frequent lookups
+  private List<Player> players = new();
+  public Player GetPlayer(int id) => players.Find(p => p.Id == id); // O(n)
+  
+  // ✅ Using Dictionary for frequent lookups
+  private Dictionary<int, Player> players = new();
+  public Player GetPlayer(int id) => players[id]; // O(1)
+  ```
+
+## 2. Modern C# Practices
+
+### Avoid Deprecated and Obsolete Code
+- **Rule**: NEVER use any code marked with `ObsoleteAttribute` - always find modern alternatives
+- **Guidelines**:
+  - **MANDATORY**: Check for `[Obsolete]` attributes on classes, structs, methods, fields, properties, events, enums
+  - **MANDATORY**: Treat all `ObsoleteAttribute` warnings as errors that must be fixed
+  - Research and implement modern alternatives that provide the same functionality
+  - Update legacy code to use current best practices and modern APIs
+  - Monitor Unity API changes and deprecations in release notes
+  - Use IDE warnings and static analysis tools to detect obsolete usage
+  - Document migration strategies for complex obsolete code replacements
+- **Examples**:
+  ```csharp
+  // ❌ ObsoleteAttribute usage - NEVER USE THESE
+  [Obsolete("Use FindGameObjectsWithTag(string, FindObjectsSortMode) instead")]
+  public static GameObject[] FindGameObjectsWithTag(string tag); // Unity API
+  
+  [Obsolete("This method is deprecated, use ProcessDataAsync instead")]
+  public void ProcessData(); // Custom method
+  
+  [Obsolete("Use modern collection initialization syntax")]
+  public class LegacyList<T> { } // Custom class
+  
+  // ❌ Using obsolete APIs
+  GameObject.FindGameObjectsWithTag("Enemy"); // Will show obsolete warning
+  
+  // ✅ Modern alternatives - ALWAYS USE THESE
+  GameObject.FindGameObjectsWithTag("Enemy", FindObjectsSortMode.None);
+  // Or better - use object references instead of Find calls
+  [SerializeField] private GameObject[] enemyObjects;
+  
+  // ✅ Modern async method
+  public async UniTask ProcessDataAsync()
+  {
+      // Modern implementation
+  }
+  
+  // ✅ Modern collection syntax
+  var items = new List<string> { "item1", "item2" };
+  // Or with collection expressions (C# 12+)
+  var items = ["item1", "item2"];
+  
+  // ❌ Obsolete C# language features
+  string.Format("Player {0} has {1} points", playerName, score);
+  
+  // ✅ Modern C# string interpolation
+  $"Player {playerName} has {score} points";
+  
+  // ❌ Legacy Unity Input System (marked obsolete in newer versions)
+  Input.GetKey(KeyCode.Space);
+  Input.GetMouseButton(0);
+  
+  // ✅ Modern Unity Input System
+  private InputAction jumpAction;
+  private InputAction clickAction;
+  
+  void Start()
+  {
+      var playerInput = GetComponent<PlayerInput>();
+      jumpAction = playerInput.actions["Jump"];
+      clickAction = playerInput.actions["Click"];
+  }
+  
+  void Update()
+  {
+      if (jumpAction.WasPressedThisFrame()) { }
+      if (clickAction.WasPressedThisFrame()) { }
+  }
+  ```
+
+### Prefer Modern C# Syntax
+- **Rule**: Use modern C# features for cleaner, more efficient code
+- **Guidelines**:
+  - Use pattern matching over type checking
+  - Prefer switch expressions over switch statements
+  - Use record types for immutable data
+  - Use nullable reference types for better null safety
+  - Use collection expressions over traditional initialization
+  - Use primary constructors when available
+- **Examples**:
+  ```csharp
+  // ❌ Traditional approach
+  if (obj is Player player)
+  {
+      if (player.Level > 10)
+      {
+          return player.Name;
+      }
+  }
+  return "Unknown";
+  
+  // ✅ Modern C# approach
+  return obj switch
+  {
+      Player { Level: > 10 } player => player.Name,
+      _ => "Unknown"
+  };
+  
+  // ❌ Traditional class with constructor
+  public class PlayerData
+  {
+      public string Name { get; }
+      public int Level { get; }
+      
+      public PlayerData(string name, int level)
+      {
+          Name = name;
+          Level = level;
+      }
+  }
+  
+  // ✅ Modern record with primary constructor (C# 12+)
+  public record PlayerData(string Name, int Level);
+  
+  // ❌ Traditional collection initialization
+  var items = new List<string> { "item1", "item2", "item3" };
+  
+  // ✅ Modern collection expressions (C# 12+)
+  var items = ["item1", "item2", "item3"];
+  ```
+
+### Use Value Types When Appropriate
+- **Rule**: Prefer `struct` over `class` for small, immutable data
+- **Guidelines**:
+  - Use structs for data under 16 bytes
+  - Make structs immutable (readonly fields, init-only properties)
+  - Avoid structs with reference type fields
+- **Examples**:
+  ```csharp
+  // ✅ Efficient struct for small data
+  public readonly struct Vector2D
+  {
+      public readonly float X;
+      public readonly float Y;
+      
+      public Vector2D(float x, float y)
+      {
+          X = x;
+          Y = y;
+      }
+  }
+  ```
+
+## 3. LINQ Alternatives and ZLinq Usage
+
+### Avoid Traditional LINQ in Performance-Critical Code
+- **Rule**: Minimize LINQ usage in Update loops and frequently called methods
+- **Guidelines**:
+  - Use traditional loops for simple operations
+  - Prefer ZLinq over standard LINQ when available
+  - Cache LINQ results when possible
+- **Examples**:
+  ```csharp
+  // ❌ LINQ in Update loop
+  void Update()
+  {
+      var activePlayers = players.Where(p => p.IsActive).ToList();
+      // Process activePlayers...
+  }
+  
+  // ✅ Cached result with ZLinq
+  private List<Player> _activePlayers = new();
+  void Update()
+  {
+      _activePlayers.Clear();
+      foreach (var player in players)
+      {
+          if (player.IsActive)
+              _activePlayers.Add(player);
+      }
+      // Process _activePlayers...
+  }
+  
+  // ✅ ZLinq alternative (when available)
+  void Update()
+  {
+      var activePlayers = players.ToList().Where(p => p.IsActive);
+      // Process activePlayers...
+  }
+  ```
+
+### ZLinq Optimization
+- **Rule**: Use ZLinq for better performance when available
+- **Guidelines**:
+  - ZLinq provides zero-allocation LINQ alternatives
+  - Use for temporary collections and filtering
+  - Prefer ZLinq over standard LINQ in performance-critical paths
+- **Examples**:
+  ```csharp
+  // ✅ ZLinq usage
+  using ZLinq;
+  
+  public void ProcessItems()
+  {
+      var filteredItems = items.AsValueEnumerable().Where(i => i.IsValid)
+                               .Select(i => i.ProcessedValue)
+                               .ToList();
+  }
+  ```
+
+## 4. Async Programming with UniTask
+
+### Prefer UniTask over Unity Awaitable and C# Task
+- **Rule**: Use UniTask for async operations in Unity
+- **Guidelines**:
+  - UniTask provides better performance than Task
+  - Use UniTaskVoid for fire-and-forget operations
+  - Avoid async void methods
+- **Examples**:
+  ```csharp
+  // ❌ Traditional async approach
+  async Task LoadDataAsync()
+  {
+      var data = await httpClient.GetStringAsync(url);
+      // Process data...
+  }
+  
+  // ✅ UniTask approach
+  async UniTask LoadDataAsync()
+  {
+      var data = await httpClient.GetStringAsync(url);
+      // Process data...
+  }
+  
+  // ✅ Fire-and-forget with UniTaskVoid
+  async UniTaskVoid LoadDataFireAndForget()
+  {
+      var data = await LoadDataAsync();
+      OnDataLoaded?.Invoke(data);
+  }
+  ```
+
+### Proper Async Patterns
+- **Rule**: Follow proper async/await patterns
+- **Guidelines**:
+  - Don't block async code with .Result or .Wait()
+  - Use ConfigureAwait(false) when appropriate
+  - Handle cancellation properly
+- **Examples**:
+  ```csharp
+  // ✅ Proper async pattern
+  public async UniTask<bool> SaveDataAsync(CancellationToken cancellationToken = default)
+  {
+      try
+      {
+          await fileSystem.WriteAllTextAsync(path, data, cancellationToken);
+          return true;
+      }
+      catch (OperationCanceledException)
+      {
+          return false;
+      }
+  }
+  ```
+
+## 5. Unity-Specific Optimizations
+
+### Unity API Modernization
+- **Rule**: Always use the latest Unity APIs and avoid deprecated methods
+- **Guidelines**:
+  - Check Unity's API documentation for deprecated methods
+  - Use modern Unity APIs that provide better performance
+  - Replace legacy Find methods with object references
+  - Use modern Input System instead of legacy Input Manager
+  - Prefer Addressables over Resources system
+- **Examples**:
+  ```csharp
+  // ❌ Deprecated Unity APIs
+  GameObject.Find("Player"); // Expensive and deprecated pattern
+  Resources.Load<GameObject>("Prefabs/Player"); // Legacy resources system
+  Input.GetKey(KeyCode.Space); // Legacy input system
+  
+  // ✅ Modern Unity APIs
+  // Use object references instead of Find
+  [SerializeField] private GameObject playerPrefab;
+  
+  // Use Addressables for asset loading
+  await Addressables.LoadAssetAsync<GameObject>("PlayerPrefab");
+  
+  // Use new Input System
+  private PlayerInput playerInput;
+  private InputAction jumpAction;
+  
+  void Awake()
+  {
+      playerInput = GetComponent<PlayerInput>();
+      jumpAction = playerInput.actions["Jump"];
+  }
+  
+  void Update()
+  {
+      if (jumpAction.WasPressedThisFrame())
+      {
+          // Handle jump
+      }
+  }
+  
+  // ❌ Legacy coroutine patterns
+  IEnumerator MoveToTarget()
+  {
+      while (Vector3.Distance(transform.position, target) > 0.1f)
+      {
+          transform.position = Vector3.Lerp(transform.position, target, Time.deltaTime);
+          yield return null;
+      }
+  }
+  
+  // ✅ Modern async/await with UniTask
+  async UniTask MoveToTargetAsync()
+  {
+      while (Vector3.Distance(transform.position, target) > 0.1f)
+      {
+          transform.position = Vector3.Lerp(transform.position, target, Time.deltaTime);
+          await UniTask.NextFrame();
+      }
+  }
+  ```
+
+### Avoid Expensive Unity Method Calls
+- **Rule**: Cache expensive Unity method results and avoid calling them frequently
+- **Expensive Methods to Avoid**:
+  - `AddComponent<T>()`
+  - `GetComponent<T>()`
+  - `GetComponents<T>()`
+  - `BroadcastMessage()`
+  - `SendMessage()`
+  - `FindObjectsByType<T>()`
+  - `FindGameObjectsWithTag()`
+  - `GameObject.Find()`
+  - `GameObject.FindWithTag()`
+- **Examples**:
+  ```csharp
+  // ❌ Expensive - called every frame
+  void Update()
+  {
+      var renderer = GetComponent<Renderer>();
+      if (renderer != null)
+      {
+          // Use renderer...
+      }
+  }
+  
+  // ✅ Efficient - cached component
+  private Renderer _renderer;
+  
+  void Awake()
+  {
+      _renderer = GetComponent<Renderer>();
+  }
+  
+  void Update()
+  {
+      if (_renderer != null)
+      {
+          // Use _renderer...
+      }
+  }
+  ```
+
+### Unity Object Lifetime Checking
+- **Rule**: Use Unity's explicit object lifetime checks for Unity objects
+- **Guidelines**:
+  - Use `Object.ReferenceEquals(obj, null)` for Unity objects
+  - Use `obj == null` for C# objects
+  - Use `default(T)` comparisons for value types
+- **Examples**:
+  ```csharp
+  // ✅ Unity object lifetime check
+  if (!Object.ReferenceEquals(gameObject, null))
+  {
+      // GameObject is still valid
+  }
+  
+  // ✅ C# object null check
+  if (customObject != null)
+  {
+      // C# object is not null
+  }
+  
+  // ✅ Value type default check
+  if (position != default(Vector3))
+  {
+      // Vector3 is not default value
+  }
+  ```
+
+### Minimize Update Loop Overhead
+- **Rule**: Keep Update, FixedUpdate, and LateUpdate methods lightweight
+- **Guidelines**:
+  - Move heavy logic to coroutines or async methods
+  - Use object pooling for frequently created/destroyed objects
+  - Cache frequently used values
+- **Examples**:
+  ```csharp
+  // ❌ Heavy logic in Update
+  void Update()
+  {
+      var nearbyEnemies = Physics.OverlapSphere(transform.position, range)
+                                 .Where(c => c.CompareTag("Enemy"))
+                                 .Select(c => c.GetComponent<Enemy>())
+                                 .ToList();
+      // Process nearby enemies...
+  }
+  
+  // ✅ Lightweight Update with cached results
+  private List<Enemy> _nearbyEnemies = new();
+  private float _lastCheckTime;
+  
+  void Update()
+  {
+      if (Time.time - _lastCheckTime > checkInterval)
+      {
+          UpdateNearbyEnemies();
+          _lastCheckTime = Time.time;
+      }
+      
+      ProcessNearbyEnemies();
+  }
+  
+  private void UpdateNearbyEnemies()
+  {
+      // Heavy logic moved to separate method
+      _nearbyEnemies.Clear();
+      var colliders = Physics.OverlapSphere(transform.position, range);
+      foreach (var col in colliders)
+      {
+          if (col.CompareTag("Enemy"))
+          {
+              _nearbyEnemies.Add(col.GetComponent<Enemy>());
+          }
+      }
+  }
+  ```
+
+## 6. Component Caching and Field Management
+
+### Prefer Public Fields and [SerializeField] for Component References
+- **Rule**: Use public fields or [SerializeField] private fields to avoid runtime component caching
+- **Guidelines**:
+  - Assign component references in Inspector instead of caching in Awake/Start
+  - Use [SerializeField] private fields for better encapsulation
+  - Avoid GetComponent calls in frequently executed code
+- **Examples**:
+  ```csharp
+  // ❌ Caching in Awake - potential performance impact
+  public class PlayerController : MonoBehaviour
+  {
+      private Rigidbody _rigidbody;
+      private Animator _animator;
+      
+      void Awake()
+      {
+          _rigidbody = GetComponent<Rigidbody>(); // Expensive call
+          _animator = GetComponent<Animator>();   // Expensive call
+      }
+  }
+  
+  // ✅ Direct field assignment - no runtime cost
+  public class PlayerController : MonoBehaviour
+  {
+      [SerializeField] private Rigidbody rigidbody;
+      [SerializeField] private Animator animator;
+      
+      void Start()
+      {
+          // Components already assigned in Inspector
+          // No GetComponent calls needed
+      }
+  }
+  
+  // ✅ Public fields for easy Inspector assignment
+  public class PlayerController : MonoBehaviour
+  {
+      public Rigidbody rigidbody;
+      public Animator animator;
+      public Transform targetTransform;
+  }
+  ```
+
+### Using Statements and Resource Management
+- **Rule**: Always use using statements for disposable resources
+- **Guidelines**:
+  - Use `using` for IDisposable objects (Streams, FileHandles, etc.)
+  - Prefer using declarations (`using var`) for cleaner syntax
+  - Ensure proper resource cleanup in async methods
+- **Examples**:
+  ```csharp
+  // ❌ Manual resource management
+  public void ProcessFile(string path)
+  {
+      var stream = new FileStream(path, FileMode.Open);
+      try
+      {
+          // Process file...
+      }
+      finally
+      {
+          stream.Dispose();
+      }
+  }
+  
+  // ✅ Using statement - automatic cleanup
+  public void ProcessFile(string path)
+  {
+      using var stream = new FileStream(path, FileMode.Open);
+      // Process file...
+      // stream automatically disposed
+  }
+  
+  // ✅ Traditional using block
+  public void ProcessFile(string path)
+  {
+      using (var stream = new FileStream(path, FileMode.Open))
+      {
+          // Process file...
+      }
+  }
+  
+  // ✅ Async with using
+  public async UniTask<string> ReadFileAsync(string path)
+  {
+      using var stream = new FileStream(path, FileMode.Open);
+      using var reader = new StreamReader(stream);
+      return await reader.ReadToEndAsync();
+  }
+  ```
+
+## 7. Event Management and Memory Leak Prevention
+
+### Proper Event Subscription and Unsubscription
+- **Rule**: Always unsubscribe from events to prevent memory leaks
+- **Guidelines**:
+  - Subscribe in OnEnable/Start, unsubscribe in OnDisable/OnDestroy
+  - Use weak event patterns for cross-object references
+  - Avoid subscribing to events in Update loops
+  - Prefer event handlers as separate methods for easier management
+- **Examples**:
+  ```csharp
+  // ❌ Memory leak - no unsubscription
+  public class EventListener : MonoBehaviour
+  {
+      void Start()
+      {
+          EventManager.OnPlayerDeath += HandlePlayerDeath;
+          // Missing unsubscription!
+      }
+      
+      void HandlePlayerDeath()
+      {
+          // Handle event...
+      }
+  }
+  
+  // ✅ Proper subscription/unsubscription
+  public class EventListener : MonoBehaviour
+  {
+      void OnEnable()
+      {
+          EventManager.OnPlayerDeath += HandlePlayerDeath;
+          EventManager.OnScoreChanged += HandleScoreChanged;
+      }
+      
+      void OnDisable()
+      {
+          EventManager.OnPlayerDeath -= HandlePlayerDeath;
+          EventManager.OnScoreChanged -= HandleScoreChanged;
+      }
+      
+      private void HandlePlayerDeath()
+      {
+          // Handle event...
+      }
+      
+      private void HandleScoreChanged(int newScore)
+      {
+          // Handle event...
+      }
+  }
+  
+  // ✅ Weak event pattern for cross-object references
+  public class WeakEventListener : MonoBehaviour
+  {
+      private WeakReference<Player> _playerRef;
+      
+      void Start()
+      {
+          var player = FindObjectOfType<Player>();
+          _playerRef = new WeakReference<Player>(player);
+          
+          if (_playerRef.TryGetTarget(out var targetPlayer))
+          {
+              targetPlayer.OnHealthChanged += HandleHealthChanged;
+          }
+      }
+      
+      void OnDestroy()
+      {
+          if (_playerRef.TryGetTarget(out var targetPlayer))
+          {
+              targetPlayer.OnHealthChanged -= HandleHealthChanged;
+          }
+      }
+      
+      private void HandleHealthChanged(int newHealth)
+      {
+          // Handle health change...
+      }
+  }
+  ```
+
+### Action and Delegate Management
+- **Rule**: Properly manage Action and delegate subscriptions
+- **Guidelines**:
+  - Use null-conditional operators for safe invocation
+  - Clear Action subscriptions when no longer needed
+  - Avoid capturing large objects in lambda expressions
+- **Examples**:
+  ```csharp
+  // ❌ Potential memory leak with lambda
+  public class ButtonManager : MonoBehaviour
+  {
+      void Start()
+      {
+          var buttons = GetComponentsInChildren<Button>();
+          foreach (var button in buttons)
+          {
+              button.onClick.AddListener(() => HandleClick(button.name)); // Captures button
+          }
+      }
+      
+      void HandleClick(string buttonName)
+      {
+          Debug.Log($"Clicked: {buttonName}");
+      }
+  }
+  
+  // ✅ Proper delegate management
+  public class ButtonManager : MonoBehaviour
+  {
+      private readonly List<Button> _buttons = new();
+      
+      void Start()
+      {
+          var buttons = GetComponentsInChildren<Button>();
+          foreach (var button in buttons)
+          {
+              _buttons.Add(button);
+              button.onClick.AddListener(() => HandleClick(button.name));
+          }
+      }
+      
+      void OnDestroy()
+      {
+          foreach (var button in _buttons)
+          {
+              if (button != null)
+              {
+                  button.onClick.RemoveAllListeners();
+              }
+          }
+          _buttons.Clear();
+      }
+      
+      void HandleClick(string buttonName)
+      {
+          Debug.Log($"Clicked: {buttonName}");
+      }
+  }
+  
+  // ✅ Safe Action invocation
+  public class EventPublisher
+  {
+      public Action<string> OnMessageReceived;
+      
+      public void PublishMessage(string message)
+      {
+          OnMessageReceived?.Invoke(message); // Safe null-conditional invocation
+      }
+  }
+  ```
+
+## 8. Memory Management
+
+### Object Pooling
+- **Rule**: Reuse objects to minimize garbage collection
+- **Guidelines**:
+  - Pool frequently created/destroyed objects
+  - Use generic object pools for common types
+  - Clear pooled objects before reuse
+- **Examples**:
+  ```csharp
+  // ✅ Object pooling example
+  public class BulletPool : MonoBehaviour
+  {
+      private readonly Queue<Bullet> _bulletPool = new();
+      private readonly List<Bullet> _activeBullets = new();
+      
+      public Bullet GetBullet()
+      {
+          if (_bulletPool.Count > 0)
+          {
+              var bullet = _bulletPool.Dequeue();
+              _activeBullets.Add(bullet);
+              return bullet;
+          }
+          
+          var newBullet = Instantiate(bulletPrefab);
+          _activeBullets.Add(newBullet);
+          return newBullet;
+      }
+      
+      public void ReturnBullet(Bullet bullet)
+      {
+          bullet.gameObject.SetActive(false);
+          _activeBullets.Remove(bullet);
+          _bulletPool.Enqueue(bullet);
+      }
+  }
+  ```
+
+### Minimize Allocations
+- **Rule**: Reduce garbage collection pressure
+- **Guidelines**:
+  - Reuse collections and clear them instead of creating new ones
+  - Use StringBuilder for string concatenation
+  - Avoid closures that capture variables
+- **Examples**:
+  ```csharp
+  // ❌ Creating new collections frequently
+  public List<Enemy> GetEnemiesInRange()
+  {
+      return enemies.Where(e => Vector3.Distance(e.transform.position, transform.position) < range).ToList();
+  }
+  
+  // ✅ Reusing collections
+  private readonly List<Enemy> _tempEnemies = new();
+  
+  public List<Enemy> GetEnemiesInRange()
+  {
+      _tempEnemies.Clear();
+      foreach (var enemy in enemies)
+      {
+          if (Vector3.Distance(enemy.transform.position, transform.position) < range)
+          {
+              _tempEnemies.Add(enemy);
+          }
+      }
+      return _tempEnemies;
+  }
+  ```
+
+## 7. String Optimization
+
+### Efficient String Operations
+- **Rule**: Optimize string operations to reduce allocations
+- **Guidelines**:
+  - Use StringBuilder for multiple concatenations
+  - Use string interpolation over concatenation
+  - Cache formatted strings when possible
+- **Examples**:
+  ```csharp
+  // ❌ Multiple string concatenations
+  string result = "Player: " + playerName + " Score: " + score + " Level: " + level;
+  
+  // ✅ String interpolation
+  string result = $"Player: {playerName} Score: {score} Level: {level}";
+  
+  // ✅ StringBuilder for many concatenations
+  var sb = new StringBuilder();
+  sb.Append("Player: ").Append(playerName);
+  sb.Append(" Score: ").Append(score);
+  sb.Append(" Level: ").Append(level);
+  string result = sb.ToString();
+  ```
+
+## 8. Exception Handling
+
+### Efficient Exception Handling
+- **Rule**: Use exceptions for exceptional cases only
+- **Guidelines**:
+  - Avoid exceptions for control flow
+  - Catch specific exceptions, not general ones
+  - Use TryGet pattern for expected failures
+- **Examples**:
+  ```csharp
+  // ❌ Using exceptions for control flow
+  try
+  {
+      var value = dictionary[key];
+      return ProcessValue(value);
+  }
+  catch (KeyNotFoundException)
+  {
+      return defaultValue;
+  }
+  
+  // ✅ TryGet pattern
+  if (dictionary.TryGetValue(key, out var value))
+  {
+      return ProcessValue(value);
+  }
+  return defaultValue;
+  ```
+
+## 9. Legacy Code Migration and Modernization
+
+### ObsoleteAttribute Detection and Migration
+- **Rule**: Systematically detect and replace all `ObsoleteAttribute` marked code
+- **Guidelines**:
+  - **IDE Integration**: Enable all obsolete warnings as errors in project settings
+  - **Static Analysis**: Use Roslyn analyzers to detect obsolete API usage
+  - **Build Configuration**: Treat obsolete warnings as compilation errors
+  - **Code Review**: Mandatory check for obsolete API usage in all code reviews
+  - **Migration Strategy**: Create migration guides for common obsolete patterns
+- **Examples**:
+  ```csharp
+  // ❌ ObsoleteAttribute detection in IDE
+  [Obsolete("This API is deprecated and will be removed in future versions")]
+  public class LegacyDataProcessor
+  {
+      [Obsolete("Use ProcessAsync instead")]
+      public void Process() { }
+      
+      [Obsolete("This property is no longer supported")]
+      public string OldProperty { get; set; }
+  }
+  
+  // ✅ Modern replacement with same functionality
+  public class ModernDataProcessor
+  {
+      public async UniTask ProcessAsync() 
+      {
+          // Modern async implementation
+          await ProcessDataInternalAsync();
+      }
+      
+      public string NewProperty { get; set; }
+  }
+  
+  // ❌ Using obsolete APIs (will show warnings/errors)
+  void Start()
+  {
+      var processor = new LegacyDataProcessor(); // Obsolete warning
+      processor.Process(); // Obsolete warning
+      var value = processor.OldProperty; // Obsolete warning
+  }
+  
+  // ✅ Using modern APIs
+  async void Start()
+  {
+      var processor = new ModernDataProcessor();
+      await processor.ProcessAsync();
+      var value = processor.NewProperty;
+  }
+  
+  // ❌ Obsolete Unity APIs
+  [Obsolete("Use FindGameObjectsWithTag(string, FindObjectsSortMode) instead")]
+  public static GameObject[] FindGameObjectsWithTag(string tag);
+  
+  // ✅ Modern Unity API usage
+  var enemies = GameObject.FindGameObjectsWithTag("Enemy", FindObjectsSortMode.None);
+  // Or better - use direct references
+  [SerializeField] private GameObject[] enemyPrefabs;
+  ```
+
+### Deprecated Code Detection and Replacement
+- **Rule**: Systematically identify and replace deprecated/obsolete code
+- **Guidelines**:
+  - Use IDE warnings and errors to identify obsolete APIs
+  - Create migration checklists for common deprecated patterns
+  - Set up automated warnings for obsolete code usage
+  - Document migration strategies for complex legacy code
+- **Examples**:
+  ```csharp
+  // ❌ Legacy patterns to avoid
+  public class LegacyGameManager : MonoBehaviour
+  {
+      void Start()
+      {
+          // Legacy singleton pattern
+          if (Instance == null)
+          {
+              Instance = this;
+              DontDestroyOnLoad(gameObject);
+          }
+          else
+          {
+              Destroy(gameObject);
+          }
+      }
+      
+      public static LegacyGameManager Instance { get; private set; }
+  }
+  
+  // ✅ Modern dependency injection pattern
+  public class GameManager : MonoBehaviour
+  {
+      [SerializeField] private GameConfig gameConfig;
+      [SerializeField] private PlayerManager playerManager;
+      [SerializeField] private AudioManager audioManager;
+      
+      // Use dependency injection instead of singleton
+      public void Initialize(GameConfig config, PlayerManager player, AudioManager audio)
+      {
+          gameConfig = config;
+          playerManager = player;
+          audioManager = audio;
+      }
+  }
+  
+  // ❌ Legacy event handling
+  public class LegacyEventHandler : MonoBehaviour
+  {
+      void Start()
+      {
+          // Manual event subscription without proper cleanup
+          SomeStaticClass.OnEvent += HandleEvent;
+      }
+      
+      void HandleEvent()
+      {
+          // Handle event
+      }
+  }
+  
+  // ✅ Modern event handling with proper lifecycle
+  public class ModernEventHandler : MonoBehaviour
+  {
+      private IDisposable eventSubscription;
+      
+      void OnEnable()
+      {
+          eventSubscription = Observable.FromEventPattern(
+              h => EventManager.OnEvent += h,
+              h => EventManager.OnEvent -= h
+          ).Subscribe(_ => HandleEvent());
+      }
+      
+      void OnDisable()
+      {
+          eventSubscription?.Dispose();
+      }
+      
+      void HandleEvent()
+      {
+          // Handle event
+      }
+  }
+  ```
+
+### Modern C# Feature Adoption
+- **Rule**: Continuously adopt new C# language features and patterns
+- **Guidelines**:
+  - Stay updated with latest C# language versions
+  - Use modern language features for better performance and readability
+  - Refactor legacy code to use modern patterns
+  - Leverage compiler optimizations from newer language versions
+- **Examples**:
+  ```csharp
+  // ❌ Legacy C# patterns
+  public class LegacyDataProcessor
+  {
+      public string ProcessData(object data)
+      {
+          if (data == null)
+              return "No data";
+              
+          if (data is string str)
+          {
+              return str.ToUpper();
+          }
+          else if (data is int num)
+          {
+              return num.ToString();
+          }
+          else if (data is Player player)
+          {
+              return player.Name;
+          }
+          
+          return "Unknown type";
+      }
+  }
+  
+  // ✅ Modern C# with pattern matching and switch expressions
+  public class ModernDataProcessor
+  {
+      public string ProcessData(object data) => data switch
+      {
+          null => "No data",
+          string str => str.ToUpper(),
+          int num => num.ToString(),
+          Player { Name: var name } => name,
+          _ => "Unknown type"
+      };
+  }
+  
+  // ❌ Legacy async patterns
+  public class LegacyAsyncProcessor
+  {
+      public Task<string> LoadDataAsync(string url)
+      {
+          return Task.Run(() =>
+          {
+              using (var client = new HttpClient())
+              {
+                  var response = client.GetAsync(url).Result; // Blocking!
+                  return response.Content.ReadAsStringAsync().Result;
+              }
+          });
+      }
+  }
+  
+  // ✅ Modern async/await patterns
+  public class ModernAsyncProcessor
+  {
+      private readonly HttpClient httpClient;
+      
+      public ModernAsyncProcessor(HttpClient client)
+      {
+          httpClient = client;
+      }
+      
+      public async Task<string> LoadDataAsync(string url)
+      {
+          using var response = await httpClient.GetAsync(url);
+          return await response.Content.ReadAsStringAsync();
+      }
+  }
+  ```
+
+### Unity Package and API Updates
+- **Rule**: Keep Unity packages and APIs up to date
+- **Guidelines**:
+  - Regularly update Unity packages to latest versions
+  - Monitor Unity release notes for API changes
+  - Use Unity's Package Manager for dependency management
+  - Test thoroughly when updating major Unity versions
+- **Examples**:
+  ```csharp
+  // ❌ Legacy Unity packages and APIs
+  using UnityEngine.Networking; // Legacy networking
+  
+  public class LegacyNetworkManager : NetworkManager
+  {
+      // Legacy networking code
+  }
+  
+  // ✅ Modern Unity packages
+  using Unity.Netcode; // Modern networking
+  
+  public class ModernNetworkManager : NetworkManager
+  {
+      // Modern networking with better performance and features
+  }
+  
+  // ❌ Legacy UI system
+  using UnityEngine.UI; // Legacy UI
+  
+  public class LegacyUI : MonoBehaviour
+  {
+      public Button button;
+      public Text text;
+  }
+  
+  // ✅ Modern UI Toolkit
+  using UnityEngine.UIElements; // Modern UI system
+  
+  public class ModernUI : MonoBehaviour
+  {
+      private VisualElement root;
+      private Button button;
+      private Label label;
+  }
+  ```
+
+## 10. Performance Monitoring
+
+### Regular Performance Checks
+- **Rule**: Monitor and benchmark critical code paths
+- **Guidelines**:
+  - Use Unity Profiler to identify bottlenecks
+  - Benchmark performance-critical code
+  - Monitor garbage collection frequency
+  - Test on target devices regularly
+- **Examples**:
+  ```csharp
+  // ✅ Performance monitoring
+  public class PerformanceMonitor : MonoBehaviour
+  {
+      private void Update()
+      {
+          #if UNITY_EDITOR
+          if (Time.frameCount % 300 == 0) // Check every 5 seconds at 60fps
+          {
+              Debug.Log($"GC Memory: {GC.GetTotalMemory(false)} bytes");
+          }
+          #endif
+      }
+  }
+  ```
+
+## Enforcement Rules
+
+### Always Apply These Rules When:
+1. Writing performance-critical code
+2. Working in Update loops
+3. Handling large datasets
+4. Creating frequently instantiated objects
+5. Implementing async operations
+6. Working with Unity objects
+7. Managing component references and field assignments
+8. Using disposable resources (files, streams, etc.)
+9. Implementing event-driven systems
+10. Creating UI components with button handlers
+11. **MANDATORY**: Encountering any code marked with `ObsoleteAttribute`
+12. **MANDATORY**: Seeing obsolete warnings or errors in IDE
+13. Refactoring legacy code
+14. Updating Unity packages or C# language versions
+15. Implementing new features or systems
+16. **MANDATORY**: During code reviews - check for obsolete API usage
+17. **MANDATORY**: Before deploying code - ensure no obsolete APIs are used
+
+### Code Review Checklist:
+- [ ] No expensive Unity method calls in Update loops
+- [ ] Proper object pooling for frequently created objects
+- [ ] Efficient data structures for access patterns
+- [ ] Minimal allocations in hot paths
+- [ ] Proper async patterns with UniTask
+- [ ] Unity object lifetime checks where appropriate
+- [ ] Cached expensive operations
+- [ ] Public fields or [SerializeField] for component references
+- [ ] Using statements for disposable resources
+- [ ] Proper event subscription/unsubscription patterns
+- [ ] No memory leaks from Action/delegate subscriptions
+- [ ] Weak event patterns for cross-object references
+- [ ] **MANDATORY**: No `ObsoleteAttribute` marked code used anywhere
+- [ ] **MANDATORY**: All obsolete warnings treated as compilation errors
+- [ ] **MANDATORY**: Modern alternatives implemented for all obsolete APIs
+- [ ] No deprecated or obsolete APIs used
+- [ ] Modern Unity APIs and packages used
+- [ ] Latest C# language features adopted where appropriate
+- [ ] Legacy patterns replaced with modern alternatives
+- [ ] Unity packages kept up to date
+- [ ] IDE warnings for obsolete code addressed
+- [ ] **MANDATORY**: Static analysis tools configured to detect obsolete usage
+- [ ] **MANDATORY**: Build configuration treats obsolete warnings as errors
+
+By following these optimization rules, you can create high-performance, maintainable Unity applications that scale effectively across different platforms and devices.

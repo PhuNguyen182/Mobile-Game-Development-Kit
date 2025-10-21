@@ -1,0 +1,1801 @@
+---
+alwaysApply: false
+---
+# 📚 Documentation Writing Rules for Unity Projects
+
+> 💡 **Mục đích**: Tạo tài liệu dự án Unity chuyên nghiệp, dễ hiểu và thân thiện với người dùng
+
+---
+
+## 📋 Table of Contents
+- [1️⃣ Yêu Cầu Bắt Buộc](#1️⃣-yêu-cầu-bắt-buộc)
+- [2️⃣ Cấu Trúc README](#2️⃣-cấu-trúc-readme)
+- [3️⃣ Tiêu Chuẩn Chất Lượng](#3️⃣-tiêu-chuẩn-chất-lượng)
+- [4️⃣ Bảo Trì Documentation](#4️⃣-bảo-trì-documentation)
+- [5️⃣ Quy Tắc Thực Thi](#5️⃣-quy-tắc-thực-thi)
+
+---
+
+## 1️⃣ Yêu Cầu Bắt Buộc
+
+### 📝 Feature Documentation Rule
+
+> ⚠️ **BẮT BUỘC**: Mọi feature triển khai theo [`code-organization-rule.mdc`](./../code-organization-rule.mdc) PHẢI có file README.md đầy đủ
+
+#### ✅ Guidelines:
+- 📁 Đặt README.md trong thư mục root của feature
+- 🌐 Sử dụng tiếng Anh chuyên nghiệp với ngữ pháp chính xác
+- 📚 Bao gồm TẤT CẢ các phần bắt buộc (xem chi tiết bên dưới)
+- 📖 Cung cấp hướng dẫn từng bước chi tiết
+- 💻 Thêm code examples thực tế và snippets
+- 🔄 Cập nhật khi feature thay đổi
+- ✨ Sử dụng emoji và ký tự đặc biệt để dễ nhìn
+- 🔗 Thêm hyperlinks đến code examples cụ thể
+
+#### 📂 Ví Dụ Cấu Trúc:
+  ```
+  Assets/
+  ├── Foundations/
+  │   ├── Popups/
+│   │   ├── 📚 README.md          ✅ Feature documentation
+│   │   ├── 📦 Interfaces/
+│   │   ├── ⚙️ Core/
+│   │   ├── 💾 Data/
+│   │   ├── 👁️ Views/
+│   │   └── 🎮 Presenters/
+  │   └── Audio/
+│       ├── 📚 README.md          ✅ Feature documentation
+│       ├── 📦 Interfaces/
+│       ├── ⚙️ Core/
+│       └── 💾 Data/
+```
+
+> 💡 **Tip**: Xem ví dụ thực tế tại [`Assets/Foundations/Popups/README.md`](./../../Assets/Foundations/Popups/README.md)
+
+---
+
+## 2️⃣ Cấu Trúc README
+
+### 📐 Required Sections
+
+> ⚠️ **BẮT BUỘC**: Mọi README.md PHẢI bao gồm CÁC PHẦN SAU theo đúng thứ tự
+
+#### ✅ Guidelines:
+- 🎨 Sử dụng Markdown formatting chuẩn với headers rõ ràng
+- 📋 Bao gồm Table of Contents cho features phức tạp
+- 🎯 Giữ format nhất quán trong toàn bộ documentation
+- 💻 Sử dụng code blocks với syntax highlighting phù hợp
+- 🖼️ Thêm visual examples và screenshots
+- ✨ Sử dụng emoji để highlight các phần quan trọng
+- 🔗 Thêm hyperlinks đến code/folders cụ thể
+
+---
+
+### 📄 Section 1: Feature Overview
+
+> 🎯 **Mục đích**: Giới thiệu feature một cách rõ ràng và thu hút
+
+#### ✅ Guidelines:
+- 💡 Giải thích feature làm gì bằng ngôn ngữ đơn giản
+- 🎯 Mô tả mục đích chính và lợi ích
+- ⭐ Liệt kê các tính năng và use cases chính
+- 📦 Đề cập dependencies và prerequisites
+
+#### 📝 Template Mẫu:
+  ```markdown
+# 🎮 Feature Name
+
+> 💡 **Giới thiệu ngắn gọn về feature**
+
+---
+
+## 📖 Overview
+
+This feature provides **[mô tả ngắn gọn]**. Nó được thiết kế để **[mục đích chính]** và mang lại **[lợi ích chính]**.
+
+### ⭐ Key Features
+- ✨ **Feature 1**: Mô tả chi tiết capability
+- 🚀 **Feature 2**: Mô tả chi tiết capability
+- 🎯 **Feature 3**: Mô tả chi tiết capability
+
+### 🎯 Use Cases
+- 📱 **Use case 1**: Khi nào dùng feature này
+- 🎮 **Use case 2**: Trường hợp sử dụng phổ biến
+- 🌟 **Use case 3**: Scenario thực tế
+
+### 📋 Prerequisites
+- 🔧 Unity version: `2022.3+`
+- 📦 Required packages: `TextMeshPro`, `UniTask`
+- ⚙️ Dependencies: Xem [`Dependencies.md`](./Dependencies.md)
+
+---
+
+> 💡 **Xem code mẫu**: [`Examples/BasicUsage.cs`](./Examples/BasicUsage.cs)
+```
+
+---
+
+### 🏗️ Section 2: Feature Components
+
+> 🎯 **Mục đích**: Giải thích chi tiết từng component của feature
+
+#### ✅ Guidelines:
+- 📁 Document mục đích của mỗi folder và file
+- 🔗 Giải thích mối quan hệ giữa các components
+- 📊 Mô tả data flow và architecture
+- 🗺️ Thêm class diagrams hoặc flowcharts nếu cần
+- 🔗 Link đến các files code cụ thể
+
+#### 📝 Template Mẫu:
+  ```markdown
+## 🏗️ Feature Components
+  
+> 🎨 Feature này tuân theo pattern **MVP (Model-View-Presenter)**
+  
+### 📂 Folder Structure
+
+  ```
+  FeatureName/
+├── 📦 Interfaces/          # Contract definitions
+├── ⚙️ Core/               # Business logic & managers
+├── 💾 Data/               # Data models & configs
+├── 👁️ Views/              # UI components
+└── 🎮 Presenters/         # MVP presenters
+```
+
+---
+
+### 🔧 Core Components
+
+#### 📦 Interfaces/
+> 🎯 **Định nghĩa contracts cho toàn bộ feature**
+
+- 📄 **[`IFeatureManager.cs`](./Interfaces/IFeatureManager.cs)**: Main interface cho feature management
+- 📄 **[`IFeatureComponent.cs`](./Interfaces/IFeatureComponent.cs)**: Interface cho từng component
+- 📄 **[`IFeatureData.cs`](./Interfaces/IFeatureData.cs)**: Data contract interface
+
+#### ⚙️ Core/
+> 🎯 **Business logic và managers chính**
+
+- 📄 **[`FeatureManager.cs`](./Core/FeatureManager.cs)**: Central manager xử lý feature lifecycle
+- 📄 **[`FeatureService.cs`](./Core/FeatureService.cs)**: Business logic implementation
+  
+> 💡 **Xem chi tiết**: Đọc thêm về architecture tại [`ARCHITECTURE.md`](./ARCHITECTURE.md)
+
+#### 💾 Data/
+> 🎯 **Data models và configurations**
+
+- 📄 **[`FeatureData.cs`](./Data/FeatureData.cs)**: Serializable data models
+- 📄 **[`FeatureConfig.cs`](./Data/FeatureConfig.cs)**: ScriptableObject configuration
+- 📄 **[`FeatureSettings.cs`](./Data/FeatureSettings.cs)**: Runtime settings
+
+#### 👁️ Views/
+> 🎯 **UI components và visual elements**
+
+- 📄 **[`FeatureView.cs`](./Views/FeatureView.cs)**: UI components và visual representation
+  
+> 💡 **UI Setup**: Xem hướng dẫn setup UI tại [Unity GameObject Setup](#unity-gameobject-setup)
+
+#### 🎮 Presenters/
+> 🎯 **MVP presenters xử lý view logic**
+
+- 📄 **[`FeaturePresenter.cs`](./Presenters/FeaturePresenter.cs)**: MVP presenter handling view logic
+
+---
+
+### 📊 Data Flow Diagram
+
+```mermaid
+graph LR
+    A[User Input] --> B[View]
+    B --> C[Presenter]
+    C --> D[Manager]
+    D --> E[Service]
+    E --> F[Data]
+    F --> E
+    E --> D
+    D --> C
+    C --> B
+    B --> G[UI Update]
+```
+
+> 💡 **Chi tiết**: Xem full architecture diagram tại [`docs/DataFlow.md`](./docs/DataFlow.md)
+```
+
+---
+
+### 📖 Section 3: Usage Instructions
+
+> 🎯 **Mục đích**: Hướng dẫn chi tiết cách sử dụng feature từng bước
+
+#### ✅ Guidelines:
+- 🎮 Include setup instructions cho Unity Inspector
+- 💻 Provide code examples cho usage patterns phổ biến
+- ⚙️ Giải thích configuration options và effects
+- 🔧 Include troubleshooting tips cho common issues
+- 🔗 Link đến code examples và tutorials
+
+#### 📝 Template Mẫu:
+  ```markdown
+## 📖 Usage Instructions
+
+### 🚀 Quick Start
+
+> ⏱️ **Setup time**: ~5 phút
+
+#### 1️⃣ Import Feature
+```bash
+# Copy feature folder vào Assets directory
+Assets/Foundations/YourFeature/
+```
+> 💡 **Note**: Đảm bảo dependencies đã được import. Xem [`Dependencies.md`](./Dependencies.md)
+
+#### 2️⃣ Create Configuration Asset
+```
+📁 Project Window
+└── Right-click → Create → Foundations → Feature Config
+    └── Đặt tên: "FeatureConfig"
+```
+
+#### 3️⃣ Setup Configuration
+- 🎨 Mở **FeatureConfig** asset
+- ⚙️ Configure các settings cần thiết
+- 💾 Save configuration
+
+> 💡 **Config Guide**: Xem chi tiết tại [Configuration Options](#configuration-options)
+
+---
+
+### 💻 Basic Usage
+
+#### 🎮 Getting Started
+
+> 📄 **Full example**: [`Examples/BasicUsage.cs`](./Examples/BasicUsage.cs)
+
+  ```csharp
+// 1️⃣ Get the feature manager
+  var featureManager = FindObjectOfType<FeatureManager>();
+  
+// 2️⃣ Initialize the feature
+  featureManager.Initialize(config);
+  
+// 3️⃣ Use the feature
+  featureManager.PerformAction();
+  ```
+  
+#### 🚀 Advanced Usage
+
+> 📄 **Full example**: [`Examples/AdvancedUsage.cs`](./Examples/AdvancedUsage.cs)
+
+  ```csharp
+// Custom configuration runtime
+  var customConfig = new FeatureConfig
+  {
+    setting1 = "custom value",  // ⚙️ Custom setting
+    setting2 = 42,              // 🔢 Custom number
+    setting3 = true             // ✅ Enable feature
+  };
+  
+  // Initialize with custom config
+  featureManager.Initialize(customConfig);
+
+// Subscribe to events
+featureManager.OnComplete += HandleComplete;
+featureManager.OnError += HandleError;
+```
+
+> 💡 **More examples**: Xem thêm tại [`Examples/`](./Examples/) folder
+
+---
+
+### 🎯 Common Use Cases
+
+#### Use Case 1: Basic Implementation
+> 📄 **Example**: [`Examples/UseCase1.cs`](./Examples/UseCase1.cs)
+
+```csharp
+// Mô tả use case và code example
+```
+
+#### Use Case 2: Advanced Scenario
+> 📄 **Example**: [`Examples/UseCase2.cs`](./Examples/UseCase2.cs)
+
+```csharp
+// Mô tả use case và code example
+```
+
+---
+
+### 📚 Tutorials
+
+- 📖 **[Tutorial 1: Getting Started](./docs/Tutorial1.md)** - Hướng dẫn cơ bản
+- 📖 **[Tutorial 2: Advanced Features](./docs/Tutorial2.md)** - Tính năng nâng cao
+- 📖 **[Tutorial 3: Best Practices](./docs/Tutorial3.md)** - Best practices
+
+> 💡 **Video Tutorial**: Xem video hướng dẫn tại [YouTube](https://youtube.com/...)
+```
+
+---
+
+### 🎮 Section 4: Unity GameObject Setup
+
+> 🎯 **Mục đích**: Hướng dẫn chi tiết setup trong Unity Inspector (khi feature cần GameObjects)
+
+#### ✅ Guidelines:
+- 🎯 Giải thích components nào cần add vào GameObject nào
+- 🖱️ Provide exact drag-and-drop instructions
+- 🔗 Specify required references và cách assign
+- 📸 Include screenshots hoặc step-by-step visual guides
+- 🔗 Link đến prefabs và assets mẫu
+#### 📝 Template Mẫu:
+  ```markdown
+## 🎮 Unity GameObject Setup
+
+> ⏱️ **Setup time**: ~10 phút | 📸 **Screenshots**: Xem tại [`docs/SetupGuide/`](./docs/SetupGuide/)
+
+---
+
+### 📦 Required GameObjects
+
+#### 1️⃣ Main Feature GameObject
+```
+Hierarchy
+└── 🎮 FeatureManager (Empty GameObject)
+    ├── Component: FeatureManager
+    └── Component: FeatureService (optional)
+```
+
+**Steps:**
+- 🖱️ Right-click in Hierarchy → `Create Empty`
+- ✏️ Rename to "FeatureManager"
+- ➕ Add Component → Scripts → [`FeatureManager`](./Core/FeatureManager.cs)
+
+#### 2️⃣ UI Canvas Setup (nếu cần UI)
+```
+Hierarchy
+└── 🎨 FeatureCanvas (Canvas)
+    ├── Component: Canvas
+    ├── Component: Canvas Scaler
+    └── Component: Graphic Raycaster
+```
+
+**Settings:**
+- 🎨 **Render Mode**: `Screen Space - Overlay`
+- 📏 **Canvas Scaler**: `Scale With Screen Size`
+- 📱 **Reference Resolution**: `1920 x 1080`
+
+> 💡 **Prefab sẵn có**: Import prefab tại [`Prefabs/FeatureCanvas.prefab`](./Prefabs/FeatureCanvas.prefab)
+
+---
+
+### ⚙️ Component Configuration
+
+#### 🎮 FeatureManager Component
+
+> 📄 **Script**: [`Core/FeatureManager.cs`](./Core/FeatureManager.cs)
+
+**1️⃣ Select FeatureManager GameObject**
+
+**2️⃣ Configure Required References:**
+
+| Field | Type | Value | Description |
+|-------|------|-------|-------------|
+| 📄 **Feature Config** | `ScriptableObject` | [`FeatureConfig`](./Data/) | Main configuration asset |
+| 🎨 **Main Canvas** | `Canvas` | `FeatureCanvas` | UI canvas reference |
+| 🎯 **Event System** | `EventSystem` | `EventSystem` | UI event handling |
+
+> 🖱️ **Drag & Drop**: Kéo assets từ Project window vào các fields tương ứng
+
+**3️⃣ Optional References:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| 🔊 **Audio Source** | `AudioSource` | Cho sound effects |
+| 📷 **Camera** | `Camera` | Cho UI positioning |
+
+---
+
+#### 👁️ FeatureView Component (nếu có UI)
+
+> 📄 **Script**: [`Views/FeatureView.cs`](./Views/FeatureView.cs)
+   
+   **UI Element References:**
+
+| Field | Component | GameObject Path |
+|-------|-----------|-----------------|
+| ✅ **Confirm Button** | `Button` | `Canvas/Panel/ConfirmButton` |
+| ❌ **Cancel Button** | `Button` | `Canvas/Panel/CancelButton` |
+| 📝 **Title Text** | `TextMeshProUGUI` | `Canvas/Panel/TitleText` |
+| 💬 **Message Text** | `TextMeshProUGUI` | `Canvas/Panel/MessageText` |
+
+> 💡 **Auto Setup**: Dùng menu `Tools → Feature → Auto Setup UI References`
+
+---
+
+### 📋 Step-by-Step Setup Process
+
+#### Step 1: Create Feature GameObject
+```
+📁 Hierarchy Window
+└── Right-click → Create Empty → Rename: "FeatureManager"
+```
+
+#### Step 2: Add Manager Component
+```
+🎮 Select: FeatureManager
+➕ Inspector → Add Component → Scripts → FeatureManager
+```
+> 📄 **Script location**: [`Core/FeatureManager.cs`](./Core/FeatureManager.cs)
+
+#### Step 3: Create Configuration Asset
+```
+📁 Project Window
+└── Right-click → Create → Foundations → Feature Config
+    └── Rename: "FeatureConfig"
+```
+> 💾 **Recommended path**: `Assets/Resources/Configs/FeatureConfig.asset`
+
+#### Step 4: Assign Configuration
+```
+🎮 Select: FeatureManager GameObject
+🖱️ Drag: FeatureConfig asset → "Feature Config" field trong Inspector
+```
+
+#### Step 5: Setup UI References
+```
+🎮 Select: FeatureManager GameObject
+🖱️ Drag: FeatureCanvas → "Main Canvas" field
+🖱️ Drag: EventSystem → "Event System" field
+```
+
+#### Step 6: Test Setup
+```
+▶️ Press Play trong Unity Editor
+✅ Check Console: Không có errors
+🧪 Test: Feature functionality
+```
+
+> 🐛 **Có lỗi?** Xem [Troubleshooting](#troubleshooting) section
+
+---
+
+### 🎬 Video Guide
+
+> 📹 **Video setup hướng dẫn**: Xem chi tiết tại [YouTube Setup Tutorial](https://youtube.com/...)
+
+### 📸 Visual Setup Guide
+
+> 🖼️ **Screenshot guide**: Xem chi tiết với screenshots tại [`docs/SetupGuide/`](./docs/SetupGuide/)
+
+---
+
+### 🎁 Quick Setup với Prefab
+
+> ⏱️ **Fastest way**: ~1 phút
+
+```
+📁 Project Window
+└── Navigate to: Assets/Foundations/YourFeature/Prefabs/
+    └── 🖱️ Drag: FeatureManager.prefab vào Hierarchy
+        └── ✅ Done! All references đã được setup sẵn
+```
+
+> 💡 **Prefab location**: [`Prefabs/FeatureManager.prefab`](./Prefabs/FeatureManager.prefab)
+```
+
+---
+
+### 📚 Section 5: API Reference
+
+> 🎯 **Mục đích**: Document đầy đủ public APIs của feature
+
+#### ✅ Guidelines:
+- 📖 Document TẤT CẢ public methods và properties
+- 📝 Include parameter descriptions và return values
+- 💻 Provide code examples cho mỗi major API
+- ⚠️ Explain important behavior hoặc side effects
+- 🔗 Link đến source code files
+
+#### 📝 Template Mẫu:
+  ```markdown
+## 📚 API Reference
+
+> 📄 **Full source code**: Xem tại [`Core/`](./Core/) folder
+
+---
+
+### 🎮 FeatureManager Class
+
+> 📄 **Source**: [`Core/FeatureManager.cs`](./Core/FeatureManager.cs)
+
+#### 🔧 Public Methods
+
+##### `Initialize(FeatureConfig config)`
+
+> 🎯 **Purpose**: Khởi tạo feature với configuration được cung cấp
+
+**Parameters:**
+- 📄 `config` (`FeatureConfig`): Configuration để sử dụng
+
+**Returns:** `void`
+
+**Example:**
+    ```csharp
+// Load config từ Resources
+    var config = Resources.Load<FeatureConfig>("FeatureConfig");
+
+// Initialize feature
+    featureManager.Initialize(config);
+    ```
+  
+> 📄 **Full example**: [`Examples/InitExample.cs`](./Examples/InitExample.cs)
+
+---
+
+##### `PerformAction()`
+
+> 🎯 **Purpose**: Thực thi main feature action
+
+**Parameters:** None
+
+**Returns:** `bool` - Success status
+
+**Example:**
+    ```csharp
+// Perform action và check result
+    bool success = featureManager.PerformAction();
+
+    if (success)
+    {
+    Debug.Log("✅ Action completed successfully");
+}
+else
+{
+    Debug.LogError("❌ Action failed");
+}
+```
+
+> 📄 **Full example**: [`Examples/ActionExample.cs`](./Examples/ActionExample.cs)
+
+---
+
+#### 📊 Public Properties
+
+##### `IsInitialized`
+
+> 🎯 **Purpose**: Kiểm tra xem feature đã được initialized chưa
+
+**Type:** `bool`
+
+**Usage:**
+    ```csharp
+    if (featureManager.IsInitialized)
+    {
+    // ✅ Feature ready to use
+    featureManager.PerformAction();
+}
+else
+{
+    // ❌ Feature chưa initialized
+    Debug.LogWarning("Feature chưa initialized!");
+}
+```
+
+---
+
+##### `CurrentConfig`
+
+> 🎯 **Purpose**: Lấy current configuration đang được sử dụng
+
+**Type:** `FeatureConfig`
+
+**Usage:**
+    ```csharp
+// Get current config
+var config = featureManager.CurrentConfig;
+
+// Modify settings
+config.enableDebugLogs = true;
+
+// Update config
+featureManager.UpdateConfig(config);
+```
+
+---
+
+### 🔔 Events
+
+#### `OnFeatureCompleted`
+
+> 🎯 **Purpose**: Raised khi feature completes main action
+
+**Event Type:** `Action<bool>`
+
+**Parameters:**
+- `bool success`: Success status của action
+
+**Example:**
+```csharp
+// Subscribe to event
+featureManager.OnFeatureCompleted += HandleComplete;
+
+void HandleComplete(bool success)
+{
+    if (success)
+    {
+        Debug.Log("✅ Feature completed successfully!");
+    }
+    else
+    {
+        Debug.LogError("❌ Feature failed!");
+    }
+}
+
+// Don't forget to unsubscribe
+void OnDestroy()
+{
+    featureManager.OnFeatureCompleted -= HandleComplete;
+}
+```
+
+> 📄 **Full example**: [`Examples/EventExample.cs`](./Examples/EventExample.cs)
+
+---
+
+#### `OnError`
+
+> 🎯 **Purpose**: Raised khi có error xảy ra
+
+**Event Type:** `Action<string>`
+
+**Parameters:**
+- `string errorMessage`: Chi tiết error message
+
+**Example:**
+```csharp
+featureManager.OnError += (errorMessage) =>
+{
+    Debug.LogError($"❌ Error: {errorMessage}");
+    // Handle error
+    };
+    ```
+
+---
+
+### 📖 API Summary Table
+
+| Method/Property | Type | Description | Link |
+|----------------|------|-------------|------|
+| `Initialize()` | Method | Khởi tạo feature | [View](./Core/FeatureManager.cs#L50) |
+| `PerformAction()` | Method | Thực thi action | [View](./Core/FeatureManager.cs#L75) |
+| `IsInitialized` | Property | Check init status | [View](./Core/FeatureManager.cs#L25) |
+| `CurrentConfig` | Property | Get current config | [View](./Core/FeatureManager.cs#L30) |
+| `OnFeatureCompleted` | Event | Completion event | [View](./Core/FeatureManager.cs#L40) |
+| `OnError` | Event | Error event | [View](./Core/FeatureManager.cs#L45) |
+
+> 💡 **More details**: Xem full API documentation tại [`API.md`](./API.md)
+```
+
+---
+
+### ⚙️ Section 6: Configuration Options
+
+> 🎯 **Mục đích**: Document TẤT CẢ configuration options và effects
+
+#### ✅ Guidelines:
+- 📝 Explain từng configuration parameter
+- 🎯 Provide recommended values
+- 💡 Include examples cho different configurations
+- ⚠️ Explain impact của mỗi setting
+- 🔗 Link đến config files
+
+#### 📝 Template Mẫu:
+  ```markdown
+## ⚙️ Configuration Options
+
+> 📄 **Config file**: [`Data/FeatureConfig.cs`](./Data/FeatureConfig.cs)
+
+---
+
+### 🎨 FeatureConfig Settings
+
+#### 🔧 General Settings
+
+##### Default Animation Duration
+
+> 📊 **Type**: `float`
+
+| Property | Value |
+|----------|-------|
+| 🎯 **Description** | Controls duration của default animations |
+| 📏 **Range** | `0.1f` - `5.0f` |
+| 🎯 **Default** | `0.3f` |
+| 💡 **Recommended** | `0.3f` - `0.5f` |
+
+**Examples:**
+```csharp
+// ⚡ Fast animations
+config.defaultAnimationDuration = 0.2f;
+
+// 🐢 Slow animations
+config.defaultAnimationDuration = 1.0f;
+```
+
+---
+
+##### Max Concurrent Features
+
+> 📊 **Type**: `int`
+
+| Property | Value |
+|----------|-------|
+| 🎯 **Description** | Maximum số features có thể active cùng lúc |
+| 📏 **Range** | `1` - `10` |
+| 🎯 **Default** | `5` |
+| 💡 **Recommended** | `3-5` (mobile), `5-10` (PC) |
+
+**Impact:**
+- ⬆️ **Higher value**: More features nhưng dùng nhiều resources
+- ⬇️ **Lower value**: Ít features nhưng performance tốt hơn
+
+**Examples:**
+  ```csharp
+// 📱 Mobile optimization
+config.maxConcurrentFeatures = 3;
+
+// 💻 Desktop/PC
+config.maxConcurrentFeatures = 10;
+```
+
+---
+
+#### 🎨 UI Settings
+
+##### Default Background Color
+
+> 📊 **Type**: `Color`
+
+| Property | Value |
+|----------|-------|
+| 🎯 **Description** | Background color cho feature UI |
+| 🎯 **Default** | `Black (0, 0, 0, 1)` |
+| 💡 **Recommended** | Semi-transparent cho overlay |
+
+**Examples:**
+```csharp
+// ⚫ Solid black
+config.defaultBackgroundColor = new Color(0, 0, 0, 1);
+
+// 🌫️ Semi-transparent overlay
+config.defaultBackgroundColor = new Color(0, 0, 0, 0.7f);
+
+// ⚪ Light overlay
+config.defaultBackgroundColor = new Color(1, 1, 1, 0.5f);
+```
+
+---
+
+##### Enable Debug Logs
+
+> 📊 **Type**: `bool`
+
+| Property | Value |
+|----------|-------|
+| 🎯 **Description** | Enable/disable debug logging |
+| 🎯 **Default** | `false` |
+| 💡 **Recommended** | `true` (development), `false` (production) |
+
+**Examples:**
+```csharp
+#if UNITY_EDITOR
+    // ✅ Enable trong Editor
+    config.enableDebugLogs = true;
+#else
+    // ❌ Disable trong Build
+    config.enableDebugLogs = false;
+#endif
+```
+
+---
+
+### 🔄 Runtime Configuration
+
+> ⚡ **Dynamic configuration**: Có thể modify settings runtime
+
+**Example:**
+```csharp
+// Get current config
+  var config = featureManager.CurrentConfig;
+
+// Modify settings
+  config.defaultAnimationDuration = 1.0f;
+  config.enableDebugLogs = true;
+config.maxConcurrentFeatures = 3;
+
+// Apply changes
+  featureManager.UpdateConfig(config);
+
+// ✅ Changes applied immediately!
+```
+
+> 📄 **Full example**: [`Examples/RuntimeConfigExample.cs`](./Examples/RuntimeConfigExample.cs)
+
+---
+
+### 📋 Configuration Presets
+
+> 🎁 **Ready-to-use presets**: Dùng cho common scenarios
+
+#### 🏃 Performance Preset (Mobile)
+```csharp
+var config = FeatureConfig.CreatePerformancePreset();
+// - Animation: 0.2f (fast)
+// - Max concurrent: 3
+// - Debug logs: false
+```
+
+#### 🎨 Quality Preset (PC)
+```csharp
+var config = FeatureConfig.CreateQualityPreset();
+// - Animation: 0.5f (smooth)
+// - Max concurrent: 10
+// - Debug logs: false
+```
+
+#### 🔧 Debug Preset (Development)
+```csharp
+var config = FeatureConfig.CreateDebugPreset();
+// - Animation: 0.3f
+// - Max concurrent: 5
+// - Debug logs: true
+```
+
+> 📄 **Source**: [`Data/FeatureConfig.cs`](./Data/FeatureConfig.cs#L100)
+
+---
+
+### 📊 Configuration Reference Table
+
+| Setting | Type | Default | Range | Impact |
+|---------|------|---------|-------|--------|
+| Animation Duration | `float` | `0.3f` | `0.1f-5.0f` | Animation speed |
+| Max Concurrent | `int` | `5` | `1-10` | Performance vs features |
+| Background Color | `Color` | `Black` | Any | UI appearance |
+| Debug Logs | `bool` | `false` | - | Development info |
+
+> 💡 **More details**: Xem full configuration guide tại [`CONFIG.md`](./CONFIG.md)
+```
+
+---
+
+### 🔧 Section 7: Troubleshooting
+
+> 🎯 **Mục đích**: Giúp giải quyết common issues nhanh chóng
+
+#### ✅ Guidelines:
+- 🐛 List frequently encountered problems
+- 📝 Provide step-by-step solutions
+- ⚠️ Include error messages và meanings
+- 🔍 Provide debugging tips và techniques
+- 🔗 Link đến related documentation
+#### 📝 Template Mẫu:
+  ```markdown
+## 🔧 Troubleshooting
+
+> ❓ **Need help?** Xem [FAQs](./FAQ.md) hoặc [Discord Support](https://discord.gg/...)
+
+---
+
+### 🐛 Common Issues
+
+#### ❌ Issue #1: "Feature not initializing"
+
+> 🔍 **Error**: `NullReferenceException: Feature is not initialized`
+
+**📋 Symptoms:**
+- ⚠️ FeatureManager shows as not initialized
+- 🚫 No response khi calling feature methods
+- ❌ Console errors về null references
+
+**✅ Solutions:**
+
+##### Step 1: Check Configuration Assignment
+```csharp
+// Verify config is assigned
+if (featureManager.CurrentConfig == null)
+{
+    Debug.LogError("❌ Config chưa được assign!");
+}
+```
+
+##### Step 2: Verify Inspector References
+- 🎮 Select **FeatureManager** GameObject
+- 📄 Check **Feature Config** field không null
+- 🔗 Verify tất cả required references được set
+
+##### Step 3: Check Dependencies
+- 📦 Verify packages: `TextMeshPro`, `UniTask`
+- 🔍 Check Console cho dependency errors
+
+> 💡 **Quick fix**: Use prefab tại [`Prefabs/FeatureManager.prefab`](./Prefabs/FeatureManager.prefab)
+
+---
+
+#### ❌ Issue #2: "UI elements not responding"
+
+> 🔍 **Error**: Buttons không respond to clicks
+
+**📋 Symptoms:**
+- 🖱️ Buttons don't respond to clicks
+- 🎬 UI animations not playing
+- 🚫 No interaction events firing
+
+**✅ Solutions:**
+
+##### Step 1: Check EventSystem
+  ```csharp
+// Verify EventSystem exists
+var eventSystem = FindObjectOfType<EventSystem>();
+if (eventSystem == null)
+{
+    Debug.LogError("❌ EventSystem không tồn tại!");
+}
+```
+
+##### Step 2: Verify Canvas Settings
+- 🎨 **Render Mode**: `Screen Space - Overlay`
+- 📏 **Canvas Scaler**: Đúng cấu hình
+- 🔍 Check **Graphic Raycaster** component
+
+##### Step 3: Check UI Blocking
+- 🔍 Verify không có objects che UI
+- 📊 Check Canvas sorting order
+- 🎯 Verify Raycast Target enabled
+
+> 📄 **Debug script**: [`Examples/DebugUI.cs`](./Examples/DebugUI.cs)
+
+---
+
+#### ❌ Issue #3: "Performance problems"
+
+> 🔍 **Issue**: Frame drops và high memory usage
+
+**📋 Symptoms:**
+- 📉 Frame rate drops khi using feature
+- 💾 Memory usage increases over time
+- 🐌 Slow animations và lag
+
+**✅ Solutions:**
+
+##### Step 1: Optimize Configuration
+```csharp
+// 📱 Use performance preset
+var config = FeatureConfig.CreatePerformancePreset();
+featureManager.UpdateConfig(config);
+
+// Or manual optimization
+config.maxConcurrentFeatures = 3;  // Reduce concurrent
+config.defaultAnimationDuration = 0.2f;  // Faster animations
+config.enableDebugLogs = false;  // Disable logs
+```
+
+##### Step 2: Profile Performance
+```
+🔍 Unity → Window → Analysis → Profiler
+- Check CPU usage
+- Check Memory allocations
+- Check GC.Alloc spikes
+```
+
+##### Step 3: Check Memory Leaks
+- 🔍 Verify event unsubscriptions
+- 🧹 Clear unused references
+- 🔄 Use object pooling
+
+> 📖 **Performance guide**: [`docs/PerformanceOptimization.md`](./docs/PerformanceOptimization.md)
+
+---
+
+#### ❌ Issue #4: "Build errors"
+
+> 🔍 **Error**: Compilation errors khi build
+
+**📋 Symptoms:**
+- ❌ Build fails với compilation errors
+- 🚫 Missing references errors
+- ⚠️ Platform-specific errors
+
+**✅ Solutions:**
+
+##### Step 1: Check Platform Settings
+```
+📱 File → Build Settings
+- ✅ Verify platform selected
+- 🔍 Check player settings
+- 📦 Verify scripting backend
+```
+
+##### Step 2: Clean and Rebuild
+```
+🗑️ Assets → Reimport All
+🔧 Edit → Project Settings → Clear Cache
+🔨 Build → Clean Build
+```
+
+> 🔗 **Build guide**: [`docs/BuildGuide.md`](./docs/BuildGuide.md)
+
+---
+
+### 🔍 Debug Tools
+
+#### Enable Debug Mode
+```csharp
+// Enable comprehensive logging
+  var config = featureManager.CurrentConfig;
+  config.enableDebugLogs = true;
+  featureManager.UpdateConfig(config);
+
+// ✅ Now you'll see detailed logs
+  ```
+  
+#### Check Feature Status
+  ```csharp
+// Log feature state
+Debug.Log($"🔍 Feature initialized: {featureManager.IsInitialized}");
+Debug.Log($"📊 Active features: {featureManager.ActiveFeatureCount}");
+Debug.Log($"⚙️ Current config: {featureManager.CurrentConfig.name}");
+```
+
+#### Use Debug Window
+```
+🔧 Unity → Window → Feature → Debug Window
+```
+
+> 📄 **Debug script**: [`Tools/FeatureDebugger.cs`](./Tools/FeatureDebugger.cs)
+
+---
+
+### 📖 Error Messages Reference
+
+| Error Message | Cause | Solution |
+|--------------|-------|----------|
+| `NullReferenceException: Config is null` | Config chưa assign | Assign config trong Inspector |
+| `Feature not initialized` | Chưa gọi Initialize() | Gọi Initialize() trước khi dùng |
+| `Maximum features reached` | Quá max concurrent | Tăng maxConcurrentFeatures |
+| `UI element not found` | UI reference missing | Assign UI references |
+
+> 📚 **Full error reference**: [`docs/ErrorReference.md`](./docs/ErrorReference.md)
+
+---
+
+### 💬 Get Help
+
+#### 🆘 Still có issues?
+
+- 📖 **Documentation**: [`docs/`](./docs/) folder
+- 💬 **Discord**: [Join support server](https://discord.gg/...)
+- 📧 **Email**: support@yourproject.com
+- 🐛 **Bug Report**: [GitHub Issues](https://github.com/.../issues)
+
+#### 📝 Khi report bugs, include:
+- ✅ Unity version
+- ✅ Feature version
+- ✅ Error messages
+- ✅ Steps to reproduce
+- ✅ Screenshots/logs
+
+> 🔗 **Bug report template**: [`BUG_REPORT.md`](./.github/BUG_REPORT.md)
+```
+
+---
+
+## 3️⃣ Tiêu Chuẩn Chất Lượng
+
+### ✍️ Writing Style
+
+> 🎯 **Mục tiêu**: Documentation chuyên nghiệp, nhất quán và **CỰC KỲ DỄ HIỂU**
+
+#### ✅ Rules:
+- 🌐 Sử dụng tiếng Anh chuyên nghiệp và nhất quán
+- 💬 **MANDATORY**: Luôn dùng **ngôn ngữ tự nhiên, dễ hiểu, dễ tiếp cận**
+- 🗣️ Viết như đang **nói chuyện với người dùng**, không phải academic paper
+- 📝 Clear, concise language - tránh verbose và complicated
+- 🚫 Tránh technical jargon không giải thích
+- 💡 Giải thích mọi khái niệm phức tạp bằng **ngôn ngữ đơn giản**
+- 👥 Viết cho **người mới bắt đầu** có thể hiểu được
+- 🎯 Use active voice - friendly và engaging
+- ✨ Thêm emoji để highlight điểm quan trọng
+- 🔗 Include hyperlinks đến related docs/code
+- 📖 Prefer short sentences over long, complex ones
+- 🎨 Use examples và analogies để clarify concepts
+
+#### 📋 Natural Language Examples:
+
+```markdown
+❌ BAD - Technical jargon:
+"The system utilizes a sophisticated algorithmic approach to optimize resource allocation."
+
+✅ GOOD - Natural language:
+"The system uses a simple algorithm to manage resources efficiently."
+
+---
+
+❌ BAD - Passive voice, formal:
+"Configuration can be modified through the Inspector interface."
+
+✅ GOOD - Active voice, conversational:
+"You can change settings in the Unity Inspector."
+
+---
+
+❌ BAD - Academic style:
+"The implementation adheres to the Repository pattern architectural paradigm."
+
+✅ GOOD - Simple explanation:
+"This uses the Repository pattern 🏗️ - it keeps data access code separate and organized."
+
+---
+
+❌ BAD - Complex sentence:
+"Upon initialization of the feature management system, the configuration parameters are validated and subsequently applied to the runtime context."
+
+✅ GOOD - Short, clear sentences:
+"When you start the feature:
+1. The system checks your settings
+2. Then applies them to your game"
+
+---
+
+❌ BAD - Vague and unclear:
+"Utilize the provided mechanisms to instantiate components."
+
+✅ GOOD - Specific and clear:
+"Use these steps to create components:
+- Drag the prefab into your scene
+- Set up the required references
+- Press Play to test"
+```
+
+---
+
+### 🗣️ Natural Language Guidelines
+
+> 💬 **Core Principle**: Viết như đang **giải thích cho bạn bè**, không phải viết paper
+
+#### ✅ DO - Nên Làm:
+
+##### 1️⃣ Talk to the Reader
+```markdown
+❌ "The user is required to..."
+✅ "You need to..."
+
+❌ "One must ensure that..."
+✅ "Make sure you..."
+
+❌ "It is recommended that developers..."
+✅ "We recommend you..."
+```
+
+##### 2️⃣ Use Simple Words
+```markdown
+❌ utilize → ✅ use
+❌ instantiate → ✅ create
+❌ terminate → ✅ stop
+❌ commence → ✅ start
+❌ implement → ✅ add/build
+❌ subsequent → ✅ next
+❌ prior to → ✅ before
+❌ in order to → ✅ to
+```
+
+##### 3️⃣ Break Down Complex Ideas
+```markdown
+❌ Complex paragraph:
+"The initialization process involves validating configuration parameters, 
+establishing dependencies, and instantiating required components in the 
+correct hierarchical order before proceeding with activation."
+
+✅ Simple steps:
+"Setting up the feature is easy:
+1. ✅ Check your settings are correct
+2. 🔗 Connect the required parts
+3. 🎮 Create the components you need
+4. ▶️ Start the feature"
+```
+
+##### 4️⃣ Use Real-World Analogies
+```markdown
+❌ Technical:
+"The object pool pattern reduces instantiation overhead by recycling objects."
+
+✅ With analogy:
+"Object pooling works like a library 📚:
+- Instead of buying a new book each time → reuse from pool
+- Instead of creating new objects → reuse existing ones
+- Faster and uses less memory!"
+```
+
+##### 5️⃣ Show, Don't Just Tell
+```markdown
+❌ Abstract:
+"The configuration system supports runtime modifications."
+
+✅ Concrete example:
+"You can change settings while your game runs:
+
+// Change speed during gameplay
+gameSettings.playerSpeed = 10f;  // ⚡ Player moves faster now!
+```
+
+#### ❌ DON'T - Tránh:
+
+##### 1️⃣ Avoid Jargon Without Explanation
+```markdown
+❌ "Implement dependency injection via constructor injection"
+✅ "Pass dependencies in the constructor (this is called 'dependency injection' 🔌)"
+
+❌ "Utilize polymorphic behavior"
+✅ "Use different implementations of the same interface (polymorphism 🔄)"
+```
+
+##### 2️⃣ Don't Use Overly Formal Language
+```markdown
+❌ "It is imperative that one adheres to..."
+✅ "You must follow..."
+
+❌ "The aforementioned methodology..."
+✅ "The method we just talked about..."
+
+❌ "Per the specifications delineated herein..."
+✅ "According to these specs..."
+```
+
+##### 3️⃣ Don't Hide Information in Long Sentences
+```markdown
+❌ "The feature, which was designed to provide comprehensive management 
+capabilities for popup dialogs within the application context, requires 
+proper configuration of various parameters before it can be effectively 
+utilized in production environments."
+
+✅ "This feature manages popup dialogs. 
+
+Before using it:
+1. Set up your configuration
+2. Test it works correctly
+3. Then use it in your game"
+```
+
+##### 4️⃣ Don't Assume Knowledge
+```markdown
+❌ "Simply instantiate the MonoBehaviour..."
+✅ "Create the component (MonoBehaviour is Unity's base class for scripts)..."
+
+❌ "Apply the Singleton pattern..."
+✅ "Make it a Singleton (one instance only 1️⃣) - see [`SingletonPattern.md`](./SingletonPattern.md)"
+```
+
+---
+
+### 📖 Readability Checklist
+
+> ✅ **Use này để verify documentation dễ đọc**
+
+- [ ] 💬 Written in conversational tone (like talking to a friend)
+- [ ] 🎯 Uses "you" and "we" instead of "the user" or "one"
+- [ ] 📝 Short sentences (avg 15-20 words max)
+- [ ] 🚫 No unexplained technical jargon
+- [ ] 💡 Complex concepts broken into simple steps
+- [ ] 🎨 Uses analogies and examples
+- [ ] ✨ Important points highlighted with emoji
+- [ ] 📊 Visual structure (lists, tables, diagrams)
+- [ ] 🔗 Links to deeper explanations when needed
+- [ ] 👥 Understandable by beginners
+
+---
+
+### 💻 Code Example Standards
+
+> 🎯 **Mục tiêu**: Code examples hoàn chỉnh và functional
+
+#### ✅ Rules:
+- ✅ Include necessary `using` statements
+- ✅ Provide complete method implementations
+- ✅ Use meaningful variable names
+- ✅ Include error handling where appropriate
+- ✅ Test TẤT CẢ code examples trước khi include
+- 🔗 Link đến full example files
+
+#### 📋 Examples:
+
+```markdown
+❌ BAD: Incomplete example
+```csharp
+featureManager.Initialize(config);
+```
+
+✅ GOOD: Complete with context
+```csharp
+using UnityEngine;
+using Foundations.Features;
+
+public class Example : MonoBehaviour
+{
+    [SerializeField] private FeatureConfig config;
+    private FeatureManager featureManager;
+    
+    void Start()
+    {
+        // Initialize feature manager
+        featureManager = FindObjectOfType<FeatureManager>();
+        
+        // Verify config is assigned
+        if (config == null)
+        {
+            Debug.LogError("❌ Config is null!");
+            return;
+        }
+        
+        // Initialize feature
+        featureManager.Initialize(config);
+    }
+}
+```
+
+> 📄 **Full example**: [`Examples/CompleteExample.cs`](./Examples/CompleteExample.cs)
+```
+```
+
+---
+
+### 🖼️ Visual Documentation
+
+> 🎯 **Mục tiêu**: Enhance understanding với visual aids
+
+#### ✅ Rules:
+- 📸 Include screenshots cho Unity Inspector setup
+- 🗺️ Use diagrams cho complex relationships
+- 📊 Provide before/after examples where helpful
+- 🎨 Use consistent visual styling across docs
+- 🔗 Link đến high-res images nếu cần
+
+#### 📋 Examples:
+
+```markdown
+### Unity Inspector Setup
+
+![Inspector Setup](./docs/images/inspector-setup.png)
+
+**Key Fields:**
+1. 📄 **Feature Config** - Drag config asset here
+2. 🎨 **Main Canvas** - Drag canvas here
+3. 🎯 **Event System** - Drag event system here
+
+> 🔍 **Large view**: Click [here](./docs/images/inspector-setup-full.png)
+```
+
+---
+
+### 🔗 Hyperlink Standards
+
+> 🎯 **Mục tiêu**: Links dễ follow và maintain
+
+#### ✅ Rules:
+- 🔗 Use **relative paths** cho internal links
+- 📝 Use **descriptive link text** (không dùng "click here")
+- 🎯 Link đến specific files/folders khi possible
+- ✅ Verify all links work before publishing
+
+#### 📋 Examples:
+
+```markdown
+❌ BAD:
+- Click [here](./Core/Manager.cs) for code
+- See documentation [link](./docs/)
+
+✅ GOOD:
+- Xem [`FeatureManager.cs`](./Core/FeatureManager.cs) implementation
+- Đọc thêm tại [API Documentation](./docs/API.md)
+- Full examples tại [`Examples/`](./Examples/) folder
+```
+
+---
+
+## 4️⃣ Bảo Trì Documentation
+
+### 🔄 Update Requirements
+
+> ⚠️ **BẮT BUỘC**: Documentation PHẢI được update khi features thay đổi
+
+#### ✅ Rules:
+- 📝 Update README.md khi adding new features
+- 🔧 Modify API docs khi changing public interfaces
+- 🎮 Update setup instructions khi requirements change
+- 🔍 Review và update examples cho accuracy
+- ✨ Update emoji và formatting theo standards
+- 🔗 Verify và update all hyperlinks
+
+#### 📋 Update Checklist:
+
+```markdown
+## Feature Update Checklist
+
+### Code Changes
+- [ ] ✅ Code implementation completed
+- [ ] 🧪 All tests passing
+- [ ] 📝 Code reviewed
+
+### Documentation Updates
+- [ ] 📚 README.md updated
+- [ ] 📖 API reference updated  
+- [ ] 💻 Code examples updated
+- [ ] 🎮 Setup instructions verified
+- [ ] 🔗 All hyperlinks working
+- [ ] 📸 Screenshots updated (if needed)
+- [ ] ⚙️ Configuration docs updated
+
+### Quality Check
+- [ ] ✍️ Writing style consistent
+- [ ] ✨ Emoji usage appropriate
+- [ ] 🔗 Links pointing to correct files
+- [ ] 💻 Code examples tested
+- [ ] 📝 Changelog updated
+```
+
+---
+
+### 📝 Version Control
+
+> 🎯 **Mục tiêu**: Maintain documentation version history
+
+#### ✅ Rules:
+- 🔢 Include version information trong README.md
+- ⚠️ Document breaking changes between versions
+- 📖 Provide migration guides cho major updates
+- 📋 Keep CHANGELOG.md cho significant modifications
+
+#### 📋 Version Documentation Template:
+
+```markdown
+# 📦 Feature Name
+
+> 🔢 **Version**: `2.1.0` | 📅 **Last Updated**: `2024-01-15`
+
+---
+
+## 📋 Version History
+
+### v2.1.0 (2024-01-15)
+#### ✨ New Features
+- 🚀 Added advanced configuration presets
+- 🎨 Improved UI animation system
+- 📊 Performance monitoring tools
+
+#### 🔧 Improvements
+- ⚡ 30% faster initialization
+- 💾 Reduced memory usage by 20%
+- 🎮 Better Unity 2023 support
+
+#### 🐛 Bug Fixes
+- ✅ Fixed config serialization issue
+- ✅ Fixed UI element positioning
+- ✅ Fixed memory leak in event system
+
+#### ⚠️ Breaking Changes
+- 🔴 `InitializeOld()` method removed → Use `Initialize()`
+- 🔴 Config format changed → See [Migration Guide](#migration-v2)
+
+> 📖 **Migration Guide**: [`MIGRATION.md`](./MIGRATION.md)
+
+---
+
+### v2.0.0 (2023-12-01)
+[Previous version details...]
+
+---
+
+## 🔄 Changelog
+
+> 📄 **Full changelog**: [`CHANGELOG.md`](./CHANGELOG.md)
+```
+
+---
+
+### 🔄 Migration Guides
+
+> 🎯 **Mục tiêu**: Giúp users upgrade smoothly
+
+#### ✅ Rules:
+- 📝 Create migration guide cho breaking changes
+- 🔍 Include before/after code examples
+- ⚠️ Highlight deprecated features
+- 💡 Provide automated migration tools nếu có
+
+#### 📋 Migration Guide Template:
+
+```markdown
+# 🔄 Migration Guide: v1.x → v2.0
+
+> ⏱️ **Migration time**: ~15 phút
+
+---
+
+## ⚠️ Breaking Changes
+
+### 1️⃣ Initialize Method Changed
+
+#### ❌ Old Way (v1.x)
+```csharp
+// Deprecated in v2.0
+featureManager.InitializeOld(config, useDebug: true);
+```
+
+#### ✅ New Way (v2.0+)
+```csharp
+// New unified method
+var config = FeatureConfig.CreateDebugPreset();
+featureManager.Initialize(config);
+```
+
+> 💡 **Why?**: Simplified API với preset support
+
+---
+
+### 2️⃣ Config Format Updated
+
+#### ❌ Old Config (v1.x)
+```json
+{
+  "animDuration": 0.3,
+  "maxFeatures": 5
+}
+```
+
+#### ✅ New Config (v2.0+)
+```json
+{
+  "defaultAnimationDuration": 0.3,
+  "maxConcurrentFeatures": 5,
+  "enableDebugLogs": false
+}
+```
+
+> 🔧 **Auto-migrate**: Run `Tools → Feature → Migrate Config`
+
+---
+
+## 📋 Step-by-Step Migration
+
+### Step 1: Backup Current Project
+```bash
+# Create backup
+git commit -am "Before migration to v2.0"
+```
+
+### Step 2: Update Package
+```
+📦 Package Manager → Feature Package → Update to 2.0.0
+```
+
+### Step 3: Run Migration Tool
+```
+🔧 Unity → Tools → Feature → Migration Wizard
+```
+
+### Step 4: Update Your Code
+- 🔍 Find all usages: `Ctrl+Shift+F` → `InitializeOld`
+- ✏️ Replace với new `Initialize()` method
+- ⚙️ Update config format
+
+### Step 5: Test Everything
+```
+▶️ Run all scenes
+✅ Verify functionality
+🧪 Run unit tests
+```
+
+> 📄 **Migration script**: [`Tools/MigrationWizard.cs`](./Tools/MigrationWizard.cs)
+```
+
+---
+
+## 5️⃣ Quy Tắc Thực Thi
+
+### ⚠️ Always Apply These Rules When:
+
+> 🔴 **CRITICAL**: Các rules SAU PHẢI được follow LUÔN LUÔN
+
+#### 📋 Scenarios:
+1. ✨ Creating new features following [`code-organization-rule.mdc`](./../code-organization-rule.mdc)
+2. 🔧 Modifying existing features
+3. ➕ Adding new components to features
+4. 🔄 Changing public APIs or interfaces
+5. ⚙️ Updating configuration options
+6. 🐛 Fixing bugs that affect usage
+7. ⚠️ **MANDATORY**: Completing any feature implementation
+8. ⚠️ **MANDATORY**: Before committing feature code to version control
+9. ⚠️ **MANDATORY**: When preparing features for team use
+
+---
+
+### ✅ Documentation Review Checklist
+
+> 📋 **Use này trước khi finalize documentation**
+
+#### 🎯 Structure & Content
+- [ ] 📚 README.md exists in feature root folder
+- [ ] 📄 All mandatory sections present và complete
+- [ ] 🎯 Feature overview clearly explains purpose và benefits
+- [ ] 🏗️ Components explained với clear relationships
+- [ ] 📖 Usage instructions step-by-step và complete
+- [ ] 🎮 Unity GameObject setup includes drag-and-drop instructions
+- [ ] 🔗 All required references clearly specified
+- [ ] 📚 API reference documents all public methods và properties
+- [ ] ⚙️ Configuration options fully documented
+- [ ] 🔧 Troubleshooting section addresses common issues
+
+#### 💻 Code & Examples
+- [ ] ✅ Code examples complete và functional
+- [ ] 🔗 All examples tested và working
+- [ ] 📄 Hyperlinks point to correct files/folders
+- [ ] 🔍 All code files linked exist
+
+#### 🎨 Style & Format
+- [ ] ✨ Emoji usage consistent và appropriate
+- [ ] 🎯 Headers rõ ràng và phân tầng tốt
+- [ ] 🔗 Hyperlinks descriptive và working
+- [ ] 🌐 Documentation in clear, professional English
+- [ ] 🖼️ Visual aids included where helpful
+- [ ] 📝 Version information current và accurate
+
+#### 💬 Natural Language (MANDATORY)
+- [ ] 🗣️ **Written in conversational tone** (như nói chuyện với bạn)
+- [ ] 👥 Uses "you" and "we" (không dùng "the user", "one must")
+- [ ] 📝 **Simple words preferred** (use vs utilize, create vs instantiate)
+- [ ] 🚫 **No unexplained jargon** (giải thích mọi technical terms)
+- [ ] 💡 **Complex ideas broken down** into simple steps
+- [ ] 🎨 **Uses analogies** để giải thích concepts
+- [ ] ✅ Short sentences (trung bình 15-20 words)
+- [ ] 👶 **Understandable by beginners** (người mới có thể hiểu)
+
+---
+
+### 🔍 Quality Assurance
+
+> ✅ **Final checks trước khi release documentation**
+
+#### 🧪 Testing
+- [ ] 🎮 Test all setup instructions trên clean Unity project
+- [ ] ✅ Verify all code examples compile và run
+- [ ] 🔍 Check all Unity Inspector references correct
+- [ ] ⚙️ Validate all configuration options work as documented
+- [ ] 🔗 Verify all hyperlinks working
+- [ ] 📸 Check all images/screenshots load correctly
+
+#### 📖 Review
+- [ ] 👥 Review documentation for clarity và completeness
+- [ ] 🎯 Ensure consistency with other feature documentation
+- [ ] ⚠️ **MANDATORY**: Have another team member review documentation
+- [ ] ⚠️ **MANDATORY**: Update documentation before feature release
+- [ ] ✨ Verify emoji và formatting standards met
+- [ ] 🔗 Double-check all code file links valid
+
+---
+
+### 🎓 Documentation Templates
+
+> 🎁 **Ready-to-use templates** cho different documentation types
+
+#### 📄 README Template
+```markdown
+📂 Location: Feature Root Folder
+📝 File: README.md
+🎯 Purpose: Main feature documentation
+
+> Download template: [`templates/README_TEMPLATE.md`](./../templates/README_TEMPLATE.md)
+```
+
+#### 📖 API Documentation Template
+```markdown
+📂 Location: docs/ folder
+📝 File: API.md
+🎯 Purpose: Detailed API reference
+
+> Download template: [`templates/API_TEMPLATE.md`](./../templates/API_TEMPLATE.md)
+```
+
+#### 🔄 Migration Guide Template
+```markdown
+📂 Location: docs/ folder
+📝 File: MIGRATION.md
+🎯 Purpose: Version upgrade guide
+
+> Download template: [`templates/MIGRATION_TEMPLATE.md`](./../templates/MIGRATION_TEMPLATE.md)
+```
+
+---
+
+### 📊 Documentation Metrics
+
+> 📈 **Track documentation quality**
+
+#### ✅ Completeness Score
+- ✅ All sections: **100%**
+- ✅ Code examples: **100%**
+- ✅ Hyperlinks: **100%**
+- ✅ Visual aids: **80%+**
+
+#### 🎯 Quality Indicators
+- 📝 Clear writing style
+- 🔗 Working hyperlinks
+- ✨ Appropriate emoji usage
+- 💻 Tested code examples
+- 📸 Updated screenshots
+
+---
+
+### 🎉 Final Checklist
+
+> ✅ **Complete này để ensure high-quality documentation**
+
+```markdown
+## Pre-Release Documentation Checklist
+
+### ⚠️ CRITICAL (MUST HAVE)
+- [ ] 📚 README.md với all mandatory sections
+- [ ] 💻 All code examples tested
+- [ ] 🔗 All hyperlinks working
+- [ ] ✨ Emoji và formatting consistent
+- [ ] 📝 Writing style professional
+- [ ] 🎮 Setup instructions complete
+- [ ] 👥 Peer review completed
+
+### ✅ RECOMMENDED (SHOULD HAVE)
+- [ ] 📸 Screenshots/visual guides
+- [ ] 📖 Additional tutorials
+- [ ] 🔄 Migration guides (if applicable)
+- [ ] 📊 Performance benchmarks
+- [ ] 🎬 Video tutorials
+- [ ] 📋 FAQ section
+
+### 💡 OPTIONAL (NICE TO HAVE)
+- [ ] 🎨 Interactive demos
+- [ ] 📚 Advanced examples
+- [ ] 🌍 Community contributions
+- [ ] 💬 Discord/forum links
+```
+
+---
+
+## 🎓 Summary
+
+> 📝 **Tóm tắt các điểm chính**
+
+### ✅ Key Takeaways:
+1. 📚 **README.md BẮT BUỘC** cho mỗi feature
+2. 💬 **MANDATORY**: Dùng **ngôn ngữ tự nhiên, dễ hiểu** (viết như nói chuyện)
+3. 👥 **Viết cho người mới** - beginners có thể hiểu được
+4. ✨ **Emoji và formatting** giúp documentation dễ đọc
+5. 🔗 **Hyperlinks** phải point đến correct files/folders
+6. 💻 **Code examples** phải complete và tested
+7. 📝 **Simple words over jargon** - giải thích mọi technical terms
+8. 🎯 **7 Sections** required trong README.md
+9. 🎨 **Use analogies** để explain complex concepts
+10. 👥 **Peer review** before finalization
+
+### 🎯 Goals:
+- 💬 **Documentation như nói chuyện** - tự nhiên và friendly
+- 👶 **Người mới đọc hiểu được** - no prior knowledge required
+- ✅ Setup nhanh chóng (~5-10 phút)
+- 💻 Examples working out-of-the-box
+- 🔧 Troubleshooting comprehensive
+- 📝 Professional nhưng approachable
+- 🎨 Visual và engaging với emoji
+- 🔗 Easy navigation với hyperlinks
+
+---
+
+> 💡 **Remember**: Good documentation = Happy developers! 🎉
+
+> 📧 **Questions?** Contact documentation team hoặc xem [`CONTRIBUTING.md`](./../CONTRIBUTING.md)
+
+By following these documentation rules, all features will have comprehensive, user-friendly documentation that enables easy setup, usage, and maintenance by all team members. 🚀

@@ -1,0 +1,1225 @@
+---
+alwaysApply: true
+---
+
+# C# Calculation and Collection Iteration Rules for Unity
+
+This document outlines mandatory rules for efficient mathematical calculations, vector operations, matrix transformations, and collection iteration in Unity projects using C#.
+
+## 1. Mathematical Function Optimization
+
+### Prefer Lightweight Mathematical Operations
+- **Rule**: Always use the most efficient mathematical functions available
+- **Guidelines**:
+  - Use `Mathf` over `System.Math` for Unity-optimized calculations
+  - Prefer simple arithmetic over complex mathematical functions
+  - Cache expensive calculations when possible
+  - Use Unity's built-in mathematical utilities
+- **Examples**:
+  ```csharp
+  // ❌ Expensive mathematical operations
+  public float CalculateDistance(Vector3 a, Vector3 b)
+  {
+      return (float)System.Math.Sqrt(
+          System.Math.Pow(a.x - b.x, 2) + 
+          System.Math.Pow(a.y - b.y, 2) + 
+          System.Math.Pow(a.z - b.z, 2)
+      );
+  }
+  
+  // ✅ Lightweight Unity-optimized calculation for exact distance
+  public float CalculateDistance(Vector3 a, Vector3 b)
+  {
+      return Vector3.Distance(a, b); // Only use when exact distance is needed
+  }
+  
+  // ✅ Most efficient for distance comparisons
+  public float CalculateSqrDistance(Vector3 a, Vector3 b)
+  {
+      return (a - b).sqrMagnitude; // Fastest for comparisons - no square root
+  }
+  
+  // ❌ Expensive trigonometric calculations
+  public float CalculateAngle(Vector3 direction)
+  {
+      return (float)System.Math.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+  }
+  
+  // ✅ Cached calculation with Unity utilities
+  private float cachedAngle;
+  private Vector3 lastDirection;
+  
+  public float CalculateAngle(Vector3 direction)
+  {
+      if (lastDirection != direction)
+      {
+          cachedAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+          lastDirection = direction;
+      }
+      return cachedAngle;
+  }
+  
+  // ❌ Repeated expensive calculations
+  void Update()
+  {
+      var normalizedDirection = direction.normalized; // Expensive every frame
+      var magnitude = direction.magnitude; // Expensive every frame
+  }
+  
+  // ✅ Cache expensive calculations
+  private Vector3 cachedNormalizedDirection;
+  private float cachedMagnitude;
+  private Vector3 lastDirection;
+  
+  void Update()
+  {
+      if (lastDirection != direction)
+      {
+          cachedMagnitude = direction.magnitude;
+          cachedNormalizedDirection = direction / cachedMagnitude; // Avoid normalization
+          lastDirection = direction;
+      }
+      
+      // Use cached values
+      ProcessDirection(cachedNormalizedDirection, cachedMagnitude);
+  }
+  ```
+
+### Avoid Expensive Mathematical Functions
+- **Rule**: Minimize use of computationally expensive mathematical operations
+- **Guidelines**:
+  - **CRITICAL**: NEVER use Vector3.Distance or Vector2.Distance for comparisons
+  - **ALWAYS** use sqrMagnitude for distance comparisons (10-50x faster)
+  - Only use Distance when you need the exact distance value (not for comparisons)
+  - Avoid trigonometric functions in Update loops when possible
+  - Prefer integer arithmetic over floating-point when precision allows
+  - Use lookup tables for repeated trigonometric calculations
+
+### Distance vs sqrMagnitude Optimization
+- **Rule**: Use sqrMagnitude for ALL distance comparisons, Distance only for exact values
+- **Guidelines**:
+  - **For comparisons**: Always use `(vector1 - vector2).sqrMagnitude < threshold * threshold`
+  - **For exact distance**: Use `Vector3.Distance(vector1, vector2)` only when needed
+  - Cache squared threshold values to avoid repeated multiplication
+  - Use Vector2.sqrMagnitude for 2D distance comparisons
+  - Use Vector3.sqrMagnitude for 3D distance comparisons
+
+### Performance Comparison: Distance vs sqrMagnitude
+- **Performance Impact**: sqrMagnitude is **10-50x faster** than Distance for comparisons
+- **Reason**: Distance requires expensive square root calculation, sqrMagnitude does not
+- **When to use Distance**: Only when you need the exact distance value for display, logging, or calculations
+- **When to use sqrMagnitude**: For ALL comparisons (collision detection, range checks, sorting by distance)
+- **Examples**:
+  ```csharp
+  // ❌ Expensive square root in Update loop - NEVER USE FOR COMPARISONS
+  void Update()
+  {
+      float distance = Vector3.Distance(player.position, enemy.position); // Expensive!
+      if (distance < detectionRange)
+      {
+          // Process detection
+      }
+  }
+  
+  // ✅ ALWAYS USE - Squared distance comparison (no square root)
+  void Update()
+  {
+      float sqrDistance = (player.position - enemy.position).sqrMagnitude;
+      float sqrDetectionRange = detectionRange * detectionRange; // Cache squared value
+      if (sqrDistance < sqrDetectionRange)
+      {
+          // Process detection - same logic, 10-50x faster
+      }
+  }
+  
+  // ❌ NEVER USE - Vector3.Distance for comparisons
+  void Update()
+  {
+      // This is expensive even for comparisons!
+      float distance = Vector3.Distance(player.position, enemy.position);
+      if (distance < detectionRange) // Expensive square root calculation
+      {
+          // Process detection - 10-50x slower than sqrMagnitude
+      }
+  }
+  
+  // ❌ NEVER USE - Vector2.Distance for comparisons
+  void Update()
+  {
+      // 2D version is also expensive for comparisons!
+      float distance = Vector2.Distance(player2D.position, enemy2D.position);
+      if (distance < detectionRange2D) // Expensive square root calculation
+      {
+          // Process detection - 10-50x slower than sqrMagnitude
+      }
+  }
+  
+  // ✅ CORRECT - Vector2 sqrMagnitude for 2D comparisons
+  void Update()
+  {
+      float sqrDistance2D = (player2D.position - enemy2D.position).sqrMagnitude;
+      float sqrDetectionRange2D = detectionRange2D * detectionRange2D;
+      if (sqrDistance2D < sqrDetectionRange2D)
+      {
+          // Process detection - optimal performance for 2D
+      }
+  }
+  
+  // ✅ CORRECT - Use Distance ONLY when exact value is needed
+  void Update()
+  {
+      // Only use Distance when you actually need the exact distance value
+      float exactDistance = Vector3.Distance(player.position, enemy.position);
+      Debug.Log($"Exact distance: {exactDistance}"); // Display exact distance
+      
+      // For comparisons, still use sqrMagnitude
+      float sqrDistance = (player.position - enemy.position).sqrMagnitude;
+      float sqrRange = detectionRange * detectionRange;
+      if (sqrDistance < sqrRange)
+      {
+          // Process detection
+      }
+  }
+  
+  // ❌ Expensive trigonometric in Update
+  void Update()
+  {
+      float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+      transform.rotation = Quaternion.Euler(0, 0, angle);
+  }
+  
+  // ✅ Use Unity's optimized rotation methods
+  void Update()
+  {
+      transform.rotation = Quaternion.LookRotation(direction);
+      // Or for 2D: transform.rotation = Quaternion.LookRotation(Vector3.forward, direction);
+  }
+  
+  // ❌ Repeated expensive calculations
+  void Update()
+  {
+      for (int i = 0; i < enemies.Count; i++)
+      {
+          float distance = Vector3.Distance(player.position, enemies[i].position);
+          // Process each enemy
+      }
+  }
+  
+  // ✅ Cache player position and use squared distance
+  private Vector3 cachedPlayerPosition;
+  
+  void Update()
+  {
+      cachedPlayerPosition = player.position;
+      
+      for (int i = 0; i < enemies.Count; i++)
+      {
+          float sqrDistance = (cachedPlayerPosition - enemies[i].position).sqrMagnitude;
+          // Process each enemy
+      }
+  }
+  ```
+
+## 2. Vector Operations Optimization
+
+### Efficient Vector Calculations
+- **Rule**: Use Unity's optimized vector operations and avoid manual calculations
+- **Guidelines**:
+  - Use `Vector3` methods over manual component-wise operations
+  - Prefer `sqrMagnitude` over `magnitude` when comparing distances
+  - Use `Vector3.Lerp` and `Vector3.Slerp` for smooth interpolation
+  - Cache frequently used vectors
+- **Examples**:
+  ```csharp
+  // ❌ Manual vector calculations
+  public Vector3 AddVectors(Vector3 a, Vector3 b)
+  {
+      return new Vector3(a.x + b.x, a.y + b.y, a.z + b.z);
+  }
+  
+  // ✅ Use Unity's optimized vector operations
+  public Vector3 AddVectors(Vector3 a, Vector3 b)
+  {
+      return a + b; // Unity's optimized implementation
+  }
+  
+  // ❌ Manual dot product calculation
+  public float CalculateDotProduct(Vector3 a, Vector3 b)
+  {
+      return a.x * b.x + a.y * b.y + a.z * b.z;
+  }
+  
+  // ✅ Use Unity's optimized dot product
+  public float CalculateDotProduct(Vector3 a, Vector3 b)
+  {
+      return Vector3.Dot(a, b); // Unity's optimized implementation
+  }
+  
+  // ❌ Manual cross product
+  public Vector3 CalculateCrossProduct(Vector3 a, Vector3 b)
+  {
+      return new Vector3(
+          a.y * b.z - a.z * b.y,
+          a.z * b.x - a.x * b.z,
+          a.x * b.y - a.y * b.x
+      );
+  }
+  
+  // ✅ Use Unity's optimized cross product
+  public Vector3 CalculateCrossProduct(Vector3 a, Vector3 b)
+  {
+      return Vector3.Cross(a, b); // Unity's optimized implementation
+  }
+  
+  // ❌ Expensive magnitude calculation for comparison - NEVER USE
+  void Update()
+  {
+      if (Vector3.Distance(transform.position, target.position) < range) // Expensive!
+      {
+          // Process nearby objects
+      }
+  }
+  
+  // ✅ ALWAYS USE - Efficient squared magnitude comparison
+  void Update()
+  {
+      float sqrRange = range * range; // Cache squared range
+      if ((transform.position - target.position).sqrMagnitude < sqrRange)
+      {
+          // Process nearby objects - same result, 10-50x faster
+      }
+  }
+  ```
+
+### Vector Caching and Reuse
+- **Rule**: Cache frequently used vectors to avoid repeated calculations
+- **Guidelines**:
+  - Cache vectors that don't change frequently
+  - Use static vectors for constants
+  - Reuse temporary vectors in loops
+  - Avoid creating new vectors in Update loops
+- **Examples**:
+  ```csharp
+  // ❌ Creating new vectors every frame
+  void Update()
+  {
+      Vector3 direction = target.position - transform.position;
+      Vector3 normalizedDirection = direction.normalized;
+      // Process direction
+  }
+  
+  // ✅ Cache and reuse vectors
+  private Vector3 cachedDirection;
+  private Vector3 cachedNormalizedDirection;
+  private Vector3 lastTargetPosition;
+  
+  void Update()
+  {
+      if (lastTargetPosition != target.position)
+      {
+          cachedDirection = target.position - transform.position;
+          float magnitude = cachedDirection.magnitude;
+          cachedNormalizedDirection = cachedDirection / magnitude; // Avoid normalization
+          lastTargetPosition = target.position;
+      }
+      
+      // Use cached vectors
+      ProcessDirection(cachedNormalizedDirection);
+  }
+  
+  // ❌ Multiple vector creations in loop
+  void ProcessEnemies()
+  {
+      for (int i = 0; i < enemies.Count; i++)
+      {
+          Vector3 direction = player.position - enemies[i].position;
+          Vector3 normalized = direction.normalized;
+          // Process each enemy
+      }
+  }
+  
+  // ✅ Reuse temporary vectors
+  private Vector3 tempDirection = Vector3.zero;
+  
+  void ProcessEnemies()
+  {
+      for (int i = 0; i < enemies.Count; i++)
+      {
+          tempDirection = player.position - enemies[i].position;
+          float magnitude = tempDirection.magnitude;
+          tempDirection = tempDirection / magnitude; // Avoid normalization
+          // Process each enemy
+      }
+  }
+  
+  // ✅ Use static vectors for constants
+  private static readonly Vector3 UP = Vector3.up;
+  private static readonly Vector3 FORWARD = Vector3.forward;
+  private static readonly Vector3 RIGHT = Vector3.right;
+  
+  void Update()
+  {
+      // Use static vectors instead of creating new ones
+      transform.position += FORWARD * speed * Time.deltaTime;
+  }
+  ```
+
+## 3. Matrix Operations Optimization
+
+### Efficient Matrix Calculations
+- **Rule**: Use Unity's optimized matrix operations and avoid manual matrix math
+- **Guidelines**:
+  - Use `Transform` matrix properties instead of manual calculations
+  - Prefer `Matrix4x4` utility methods over manual operations
+  - Cache matrix transformations when possible
+  - Use quaternions for rotations instead of rotation matrices
+- **Examples**:
+  ```csharp
+  // ❌ Manual matrix multiplication
+  public Matrix4x4 MultiplyMatrices(Matrix4x4 a, Matrix4x4 b)
+  {
+      Matrix4x4 result = new Matrix4x4();
+      for (int i = 0; i < 4; i++)
+      {
+          for (int j = 0; j < 4; j++)
+          {
+              result[i, j] = a[i, 0] * b[0, j] + a[i, 1] * b[1, j] + 
+                            a[i, 2] * b[2, j] + a[i, 3] * b[3, j];
+          }
+      }
+      return result;
+  }
+  
+  // ✅ Use Unity's optimized matrix operations
+  public Matrix4x4 MultiplyMatrices(Matrix4x4 a, Matrix4x4 b)
+  {
+      return a * b; // Unity's optimized implementation
+  }
+  
+  // ❌ Manual matrix transformation
+  public Vector3 TransformPoint(Vector3 point, Matrix4x4 matrix)
+  {
+      Vector4 homogeneous = new Vector4(point.x, point.y, point.z, 1);
+      Vector4 transformed = matrix * homogeneous;
+      return new Vector3(transformed.x, transformed.y, transformed.z);
+  }
+  
+  // ✅ Use Unity's optimized matrix transformation
+  public Vector3 TransformPoint(Vector3 point, Matrix4x4 matrix)
+  {
+      return matrix.MultiplyPoint(point); // Unity's optimized implementation
+  }
+  
+  // ❌ Manual inverse matrix calculation
+  public Matrix4x4 CalculateInverse(Matrix4x4 matrix)
+  {
+      // Complex manual calculation...
+      return calculatedInverse;
+  }
+  
+  // ✅ Use Unity's optimized inverse calculation
+  public Matrix4x4 CalculateInverse(Matrix4x4 matrix)
+  {
+      return matrix.inverse; // Unity's optimized implementation
+  }
+  ```
+
+### Transform Matrix Optimization
+- **Rule**: Use Transform properties efficiently and cache expensive operations
+- **Guidelines**:
+  - Cache `Transform.localToWorldMatrix` when it doesn't change frequently
+  - Use `Transform.TransformPoint` instead of manual matrix multiplication
+  - Prefer `Transform` methods over manual matrix operations
+  - Cache world space positions and rotations
+- **Examples**:
+  ```csharp
+  // ❌ Repeated expensive matrix access
+  void Update()
+  {
+      for (int i = 0; i < childObjects.Count; i++)
+      {
+          Vector3 worldPos = transform.localToWorldMatrix.MultiplyPoint(childObjects[i].localPosition);
+          // Process world position
+      }
+  }
+  
+  // ✅ Cache matrix and use efficient transformation
+  private Matrix4x4 cachedLocalToWorldMatrix;
+  private bool matrixChanged = true;
+  
+  void Update()
+  {
+      if (matrixChanged)
+      {
+          cachedLocalToWorldMatrix = transform.localToWorldMatrix;
+          matrixChanged = false;
+      }
+      
+      for (int i = 0; i < childObjects.Count; i++)
+      {
+          Vector3 worldPos = cachedLocalToWorldMatrix.MultiplyPoint(childObjects[i].localPosition);
+          // Process world position
+      }
+  }
+  
+  // ❌ Manual world position calculation
+  public Vector3 GetWorldPosition(Vector3 localPosition)
+  {
+      return transform.localToWorldMatrix.MultiplyPoint(localPosition);
+  }
+  
+  // ✅ Use Unity's optimized transform methods
+  public Vector3 GetWorldPosition(Vector3 localPosition)
+  {
+      return transform.TransformPoint(localPosition); // Unity's optimized implementation
+  }
+  ```
+
+## 4. Bounds and BoundsInt Optimization
+
+### Efficient Bounds Calculations
+- **Rule**: Use Unity's optimized Bounds operations and avoid manual calculations
+- **Guidelines**:
+  - Use `Bounds.Contains` instead of manual point-in-bounds checks
+  - Prefer `Bounds.Intersects` over manual intersection calculations
+  - Cache bounds when they don't change frequently
+  - Use `BoundsInt` for integer-based bounds operations
+- **Examples**:
+  ```csharp
+  // ❌ Manual bounds checking
+  public bool IsPointInBounds(Vector3 point, Bounds bounds)
+  {
+      return point.x >= bounds.min.x && point.x <= bounds.max.x &&
+             point.y >= bounds.min.y && point.y <= bounds.max.y &&
+             point.z >= bounds.min.z && point.z <= bounds.max.z;
+  }
+  
+  // ✅ Use Unity's optimized bounds checking
+  public bool IsPointInBounds(Vector3 point, Bounds bounds)
+  {
+      return bounds.Contains(point); // Unity's optimized implementation
+  }
+  
+  // ❌ Manual bounds intersection
+  public bool DoBoundsIntersect(Bounds a, Bounds b)
+  {
+      return !(a.max.x < b.min.x || a.min.x > b.max.x ||
+               a.max.y < b.min.y || a.min.y > b.max.y ||
+               a.max.z < b.min.z || a.min.z > b.max.z);
+  }
+  
+  // ✅ Use Unity's optimized bounds intersection
+  public bool DoBoundsIntersect(Bounds a, Bounds b)
+  {
+      return a.Intersects(b); // Unity's optimized implementation
+  }
+  
+  // ❌ Manual bounds expansion
+  public Bounds ExpandBounds(Bounds bounds, float amount)
+  {
+      Vector3 expansion = Vector3.one * amount;
+      return new Bounds(bounds.center, bounds.size + expansion);
+  }
+  
+  // ✅ Use Unity's optimized bounds expansion
+  public Bounds ExpandBounds(Bounds bounds, float amount)
+  {
+      bounds.Expand(amount); // Unity's optimized implementation
+      return bounds;
+  }
+  ```
+
+### BoundsInt for Integer Operations
+- **Rule**: Use `BoundsInt` for integer-based spatial operations
+- **Guidelines**:
+  - Use `BoundsInt` for grid-based calculations
+  - Prefer `BoundsInt` over `Bounds` when working with integer coordinates
+  - Use `BoundsInt` for tile-based systems
+  - Cache bounds calculations when possible
+- **Examples**:
+  ```csharp
+  // ❌ Using Bounds for integer coordinates
+  public bool IsTileInBounds(Vector3Int tilePosition, Bounds bounds)
+  {
+      Vector3 worldPos = new Vector3(tilePosition.x, tilePosition.y, tilePosition.z);
+      return bounds.Contains(worldPos);
+  }
+  
+  // ✅ Use BoundsInt for integer coordinates
+  public bool IsTileInBounds(Vector3Int tilePosition, BoundsInt bounds)
+  {
+      return bounds.Contains(tilePosition); // More efficient for integer coordinates
+  }
+  
+  // ❌ Manual grid bounds calculation
+  public Bounds CalculateGridBounds(Vector3Int min, Vector3Int max)
+  {
+      Vector3 center = (min + max) * 0.5f;
+      Vector3 size = max - min;
+      return new Bounds(center, size);
+  }
+  
+  // ✅ Use BoundsInt for grid operations
+  public BoundsInt CalculateGridBounds(Vector3Int min, Vector3Int max)
+  {
+      return new BoundsInt(min, max - min); // More efficient for grid systems
+  }
+  
+  // ❌ Expensive bounds recalculation
+  void Update()
+  {
+      BoundsInt visibleBounds = CalculateVisibleBounds();
+      // Use bounds every frame
+  }
+  
+  // ✅ Cache bounds when they don't change frequently
+  private BoundsInt cachedVisibleBounds;
+  private bool boundsChanged = true;
+  
+  void Update()
+  {
+      if (boundsChanged)
+      {
+          cachedVisibleBounds = CalculateVisibleBounds();
+          boundsChanged = false;
+      }
+      
+      // Use cached bounds
+      ProcessVisibleArea(cachedVisibleBounds);
+  }
+  ```
+
+## 5. Loop Selection and Collection Iteration Optimization
+
+### Balanced Loop Selection Strategy
+- **Rule**: Choose loop type based on logic complexity, data type, and performance requirements
+- **Guidelines**:
+  - **for loops**: Best for arrays, List<T> with index access, known iteration count, complex conditions
+  - **foreach loops**: Best for IEnumerable<T>, clean iteration without index, when order doesn't matter
+  - **while loops**: Best for conditional iteration, unknown iteration count, complex termination conditions
+  - **do-while loops**: Best for guaranteed-at-least-once execution, input validation, menu systems
+  - Balance readability with runtime performance based on context
+  - Consider data structure characteristics and access patterns
+- **Examples**:
+  ```csharp
+  // ✅ for loop - array processing with index access and complex logic
+  public void ProcessWaypointsWithIndex()
+  {
+      for (int i = 0; i < waypoints.Length; i++)
+      {
+          // Complex logic requiring index
+          var distanceToNext = i < waypoints.Length - 1 
+              ? Vector3.Distance(waypoints[i].position, waypoints[i + 1].position)
+              : 0f;
+          
+          var isLastWaypoint = i == waypoints.Length - 1;
+          var progressPercentage = (float)i / waypoints.Length;
+          
+          this.ProcessWaypoint(waypoints[i], distanceToNext, isLastWaypoint, progressPercentage);
+      }
+  }
+  
+  // ✅ foreach loop - clean iteration without index complexity
+  public void ProcessAllEnemies()
+  {
+      foreach (var enemy in enemies)
+      {
+          // Simple processing without index requirements
+          if (enemy.IsAlive)
+          {
+              enemy.UpdateAI();
+              this.CheckEnemyInteractions(enemy);
+          }
+      }
+  }
+  
+  // ✅ while loop - conditional iteration with complex termination
+  public void ProcessUntilConditionMet()
+  {
+      var attempts = 0;
+      var maxAttempts = 100;
+      var success = false;
+      
+      while (!success && attempts < maxAttempts)
+      {
+          attempts++;
+          var randomPosition = this.GenerateRandomPosition();
+          
+          // Complex condition requiring multiple checks
+          if (this.IsValidPosition(randomPosition) && 
+              !this.IsOccupied(randomPosition) && 
+              this.HasPathToTarget(randomPosition))
+          {
+              this.SetPosition(randomPosition);
+              success = true;
+          }
+      }
+      
+      if (!success)
+      {
+          Debug.LogWarning($"Failed to find valid position after {attempts} attempts");
+      }
+  }
+  
+  // ✅ do-while loop - guaranteed execution with validation
+  public int GetValidPlayerInput()
+  {
+      int input;
+      bool isValid;
+      
+      do
+      {
+          Debug.Log("Enter player choice (1-4):");
+          input = this.ReadPlayerInput();
+          isValid = input >= 1 && input <= 4;
+          
+          if (!isValid)
+          {
+              Debug.LogWarning("Invalid input! Please enter a number between 1 and 4.");
+          }
+      }
+      while (!isValid);
+      
+      return input;
+  }
+  
+  // ❌ Wrong loop choice - using foreach when index is needed
+  public void ProcessWithIndexWrong()
+  {
+      int index = 0; // Manual index tracking
+      foreach (var item in items)
+      {
+          // Awkward manual index management
+          if (index > 0 && items[index - 1].Value > item.Value)
+          {
+              this.SwapItems(index - 1, index);
+          }
+          index++;
+      }
+  }
+  
+  // ✅ Correct loop choice - using for when index is needed
+  public void ProcessWithIndexCorrect()
+  {
+      for (int i = 1; i < items.Length; i++) // Start from 1 for comparison
+      {
+          // Clean index-based logic
+          if (items[i - 1].Value > items[i].Value)
+          {
+              this.SwapItems(i - 1, i);
+          }
+      }
+  }
+  ```
+
+### Performance vs Readability Balance
+- **Rule**: Balance loop performance with code readability based on context
+- **Guidelines**:
+  - Use **for loops** for performance-critical code with arrays/List<T>
+  - Use **foreach loops** for readable iteration when performance is not critical
+  - Use **while loops** for complex conditional logic
+  - Use **do-while loops** for guaranteed execution scenarios
+  - Cache collection counts and references for performance
+  - Consider loop unrolling for extremely performance-critical sections
+- **Examples**:
+  ```csharp
+  // ✅ Performance-critical: for loop with cached count
+  void Update() // Called every frame - performance critical
+  {
+      int enemyCount = enemies.Count; // Cache count
+      for (int i = 0; i < enemyCount; i++)
+      {
+          // Fast iteration for Update loop
+          enemies[i].UpdatePosition();
+      }
+  }
+  
+  // ✅ Readability-focused: foreach for complex processing
+  public void InitializeGameObjects()
+  {
+      // Not performance-critical - readability matters more
+      foreach (var gameObject in allGameObjects)
+      {
+          if (gameObject.RequiresInitialization())
+          {
+              gameObject.Initialize();
+              gameObject.SetupComponents();
+              gameObject.RegisterEventHandlers();
+          }
+      }
+  }
+  
+  // ✅ Complex logic: while loop for conditional processing
+  public void ProcessCollisionChain()
+  {
+      var currentCollision = this.GetInitialCollision();
+      
+      while (currentCollision != null && this.ShouldContinueChain(currentCollision))
+      {
+          var nextCollision = this.ProcessCollision(currentCollision);
+          
+          if (nextCollision != null)
+          {
+              this.ApplyCollisionEffects(nextCollision);
+              currentCollision = this.FindNextCollision(nextCollision);
+          }
+          else
+          {
+              currentCollision = null;
+          }
+      }
+  }
+  
+  // ✅ Guaranteed execution: do-while for setup validation
+  public void SetupGameLevel()
+  {
+      bool levelSetupComplete;
+      
+      do
+      {
+          levelSetupComplete = true;
+          
+          // Attempt to setup level components
+          levelSetupComplete &= this.SetupPlayerSpawnPoints();
+          levelSetupComplete &= this.SetupEnemySpawners();
+          levelSetupComplete &= this.SetupCollectibles();
+          levelSetupComplete &= this.ValidateLevelIntegrity();
+          
+          if (!levelSetupComplete)
+          {
+              Debug.LogWarning("Level setup incomplete, retrying...");
+              this.ResetLevelSetup();
+          }
+      }
+      while (!levelSetupComplete);
+  }
+  ```
+
+### Data Structure Specific Loop Optimization
+- **Rule**: Choose loops based on data structure characteristics and access patterns
+- **Guidelines**:
+  - **Arrays**: Use for loops for direct index access and performance
+  - **List<T>**: Use for loops for index access, foreach for clean iteration
+  - **Dictionary<TKey, TValue>**: Use foreach on Values/Keys collections
+  - **HashSet<T>**: Use foreach for iteration (no index access)
+  - **Queue<T>/Stack<T>**: Use while loops with conditional checking
+  - **LinkedList<T>**: Use foreach or while loops with node traversal
+- **Examples**:
+  ```csharp
+  // ✅ Array - for loop with direct index access
+  public void ProcessWaypointArray()
+  {
+      for (int i = 0; i < waypoints.Length; i++)
+      {
+          // Direct array access - most efficient
+          var currentWaypoint = waypoints[i];
+          var nextWaypoint = i < waypoints.Length - 1 ? waypoints[i + 1] : null;
+          
+          this.ProcessWaypoint(currentWaypoint, nextWaypoint, i);
+      }
+  }
+  
+  // ✅ List<T> - for loop for index access, foreach for clean iteration
+  public void ProcessEnemyList()
+  {
+      // Index-based processing
+      for (int i = enemies.Count - 1; i >= 0; i--) // Reverse iteration for safe removal
+      {
+          if (!enemies[i].IsAlive)
+          {
+              enemies.RemoveAt(i);
+          }
+      }
+      
+      // Clean iteration without index
+      foreach (var enemy in enemies)
+      {
+          enemy.UpdateAI();
+      }
+  }
+  
+  // ✅ Dictionary - foreach on Values collection
+  public void ProcessEnemyDictionary()
+  {
+      // Efficient iteration over values only
+      foreach (var enemy in enemyDictionary.Values)
+      {
+          if (enemy.IsActive)
+          {
+              enemy.Update();
+          }
+      }
+      
+      // When both key and value are needed
+      foreach (var kvp in enemyDictionary)
+      {
+          Debug.Log($"Enemy {kvp.Key}: {kvp.Value.Health} HP");
+      }
+  }
+  
+  // ✅ HashSet - foreach iteration
+  public void ProcessUniqueItems()
+  {
+      foreach (var item in uniqueItems)
+      {
+          this.ProcessUniqueItem(item);
+      }
+  }
+  
+  // ✅ Queue - while loop with conditional checking
+  public void ProcessCommandQueue()
+  {
+      while (commandQueue.Count > 0)
+      {
+          var command = commandQueue.Dequeue();
+          
+          if (command.IsValid())
+          {
+              command.Execute();
+          }
+      }
+  }
+  
+  // ✅ Stack - while loop with conditional checking
+  public void ProcessUndoStack()
+  {
+      while (undoStack.Count > 0 && this.ShouldProcessUndo())
+      {
+          var action = undoStack.Pop();
+          action.Undo();
+      }
+  }
+  
+  // ✅ LinkedList - while loop with node traversal
+  public void ProcessLinkedList()
+  {
+      var currentNode = linkedList.First;
+      
+      while (currentNode != null)
+      {
+          var nextNode = currentNode.Next;
+          
+          if (this.ShouldRemoveNode(currentNode.Value))
+          {
+              linkedList.Remove(currentNode);
+          }
+          
+          currentNode = nextNode;
+      }
+  }
+  ```
+
+### Loop Performance Optimization Techniques
+- **Rule**: Apply specific optimization techniques based on loop type and performance requirements
+- **Guidelines**:
+  - Cache collection counts and references outside loops
+  - Use loop unrolling for extremely performance-critical sections
+  - Minimize method calls inside tight loops
+  - Use local variables to avoid repeated property access
+  - Consider loop fusion for multiple operations on same data
+  - Use appropriate loop bounds to avoid unnecessary iterations
+- **Examples**:
+  ```csharp
+  // ❌ Inefficient - repeated property access and method calls
+  void Update()
+  {
+      for (int i = 0; i < enemies.Count; i++) // Count accessed every iteration
+      {
+          if (enemies[i].IsAlive) // Property access every iteration
+          {
+              enemies[i].UpdatePosition(); // Method call
+              enemies[i].UpdateHealth(); // Another method call
+              enemies[i].CheckCollisions(); // Another method call
+          }
+      }
+  }
+  
+  // ✅ Optimized - cached references and reduced method calls
+  void Update()
+  {
+      int enemyCount = enemies.Count; // Cache count
+      
+      for (int i = 0; i < enemyCount; i++)
+      {
+          var enemy = enemies[i]; // Cache reference
+          
+          if (enemy.IsAlive) // Single property access
+          {
+              // Batch updates to reduce method call overhead
+              enemy.UpdateAll();
+          }
+      }
+  }
+  
+  // ✅ Loop unrolling for extreme performance (use sparingly)
+  void ProcessHighFrequencyData()
+  {
+      int count = dataArray.Length;
+      int i = 0;
+      
+      // Process 4 items at a time (loop unrolling)
+      for (; i < count - 3; i += 4)
+      {
+          ProcessItem(dataArray[i]);
+          ProcessItem(dataArray[i + 1]);
+          ProcessItem(dataArray[i + 2]);
+          ProcessItem(dataArray[i + 3]);
+      }
+      
+      // Process remaining items
+      for (; i < count; i++)
+      {
+          ProcessItem(dataArray[i]);
+      }
+  }
+  
+  // ✅ Loop fusion - combine multiple operations
+  public void UpdateAndRenderSprites()
+  {
+      // Instead of two separate loops, combine operations
+      for (int i = 0; i < sprites.Length; i++)
+      {
+          var sprite = sprites[i];
+          
+          // Update and render in same iteration
+          sprite.UpdatePosition();
+          sprite.UpdateAnimation();
+          sprite.Render();
+      }
+  }
+  
+  // ✅ Optimized bounds checking
+  public void ProcessVisibleObjects()
+  {
+      var cameraBounds = this.GetCameraBounds();
+      var objectCount = gameObjects.Length;
+      
+      for (int i = 0; i < objectCount; i++)
+      {
+          var gameObject = gameObjects[i];
+          
+          // Early exit for objects outside bounds
+          if (!cameraBounds.Contains(gameObject.transform.position))
+          {
+              continue;
+          }
+          
+          // Process only visible objects
+          this.ProcessVisibleObject(gameObject);
+      }
+  }
+  ```
+
+### Efficient Collection Iteration
+- **Rule**: Use the most efficient iteration method for each collection type
+- **Guidelines**:
+  - Use `for` loops for `List<T>` and arrays when index is needed
+  - Use `foreach` for `IEnumerable<T>` and when index is not needed
+  - Avoid LINQ in performance-critical code
+  - Cache collection counts and references
+- **Examples**:
+  ```csharp
+  // ❌ Inefficient LINQ in Update loop
+  void Update()
+  {
+      var activeEnemies = enemies.Where(e => e.IsActive).ToList();
+      foreach (var enemy in activeEnemies)
+      {
+          // Process enemy
+      }
+  }
+  
+  // ✅ Efficient for loop iteration
+  private List<Enemy> activeEnemies = new List<Enemy>();
+  
+  void Update()
+  {
+      activeEnemies.Clear();
+      for (int i = 0; i < enemies.Count; i++)
+      {
+          if (enemies[i].IsActive)
+          {
+              activeEnemies.Add(enemies[i]);
+          }
+      }
+      
+      for (int i = 0; i < activeEnemies.Count; i++)
+      {
+          // Process enemy
+      }
+  }
+  
+  // ❌ Repeated count access
+  void Update()
+  {
+      for (int i = 0; i < enemies.Count; i++) // Count accessed every iteration
+      {
+          // Process enemy
+      }
+  }
+  
+  // ✅ Cache count for better performance
+  void Update()
+  {
+      int enemyCount = enemies.Count; // Cache count
+      for (int i = 0; i < enemyCount; i++)
+      {
+          // Process enemy
+      }
+  }
+  
+  // ❌ Inefficient dictionary iteration
+  void Update()
+  {
+      foreach (var kvp in enemyDictionary)
+      {
+          if (kvp.Value.IsActive)
+          {
+              // Process enemy
+          }
+      }
+  }
+  
+  // ✅ Efficient dictionary iteration
+  void Update()
+  {
+      foreach (var enemy in enemyDictionary.Values)
+      {
+          if (enemy.IsActive)
+          {
+              // Process enemy - no key-value pair overhead
+          }
+      }
+  }
+  ```
+
+### Collection Access Optimization
+- **Rule**: Minimize collection access overhead and use appropriate data structures
+- **Guidelines**:
+  - Use arrays for fixed-size collections with frequent access
+  - Use `List<T>` for dynamic collections
+  - Use `Dictionary<TKey, TValue>` for key-based lookups
+  - Cache frequently accessed collection elements
+- **Examples**:
+  ```csharp
+  // ❌ Inefficient list access
+  public Enemy GetEnemyById(int id)
+  {
+      return enemies.FirstOrDefault(e => e.Id == id); // O(n) search
+  }
+  
+  // ✅ Efficient dictionary lookup
+  private Dictionary<int, Enemy> enemyLookup = new Dictionary<int, Enemy>();
+  
+  public Enemy GetEnemyById(int id)
+  {
+      return enemyLookup.TryGetValue(id, out Enemy enemy) ? enemy : null; // O(1) lookup
+  }
+  
+  // ❌ Repeated collection access
+  void Update()
+  {
+      for (int i = 0; i < enemies.Count; i++)
+      {
+          if (enemies[i].IsActive && enemies[i].Health > 0) // Multiple accesses
+          {
+              enemies[i].Update(); // Another access
+          }
+      }
+  }
+  
+  // ✅ Cache collection element
+  void Update()
+  {
+      for (int i = 0; i < enemies.Count; i++)
+      {
+          Enemy enemy = enemies[i]; // Cache reference
+          if (enemy.IsActive && enemy.Health > 0)
+          {
+              enemy.Update();
+          }
+      }
+  }
+  
+  // ❌ Inefficient array access
+  void Update()
+  {
+      for (int i = 0; i < waypoints.Length; i++)
+      {
+          float distance = Vector3.Distance(transform.position, waypoints[i].position);
+          // Process waypoint
+      }
+  }
+  
+  // ✅ Cache array element and use squared distance
+  void Update()
+  {
+      Vector3 currentPosition = transform.position; // Cache position
+      for (int i = 0; i < waypoints.Length; i++)
+      {
+          Waypoint waypoint = waypoints[i]; // Cache waypoint
+          float sqrDistance = (currentPosition - waypoint.position).sqrMagnitude;
+          // Process waypoint
+      }
+  }
+  ```
+
+## Enforcement Rules
+
+### Always Apply These Rules When:
+1. Writing mathematical calculations and vector operations
+2. Working with matrices and transformations
+3. Implementing bounds checking and spatial queries
+4. Iterating over collections in performance-critical code
+5. Working with Unity's Transform and spatial systems
+6. Implementing physics calculations and collision detection
+7. Creating procedural generation or mathematical algorithms
+8. Optimizing Update loops and frequently called methods
+9. **MANDATORY**: Choosing loop types based on logic complexity and data structures
+10. **MANDATORY**: Balancing performance vs readability in loop selection
+11. **MANDATORY**: Optimizing loop performance for different data structures
+
+### Code Review Checklist:
+- [ ] **CRITICAL**: NO Vector3.Distance or Vector2.Distance used for comparisons
+- [ ] **CRITICAL**: sqrMagnitude used for ALL distance comparisons
+- [ ] Squared threshold values are cached (threshold * threshold)
+- [ ] Mathematical functions use Unity's optimized implementations
+- [ ] Expensive operations (sqrt, trig) are avoided in Update loops
+- [ ] Vector operations use Unity's built-in methods
+- [ ] Distance methods only used when exact values are needed
+- [ ] Matrix operations use Unity's optimized implementations
+- [ ] Bounds operations use Unity's built-in methods
+- [ ] Collection iteration uses appropriate loop types
+- [ ] Collection access is minimized and cached when possible
+- [ ] LINQ is avoided in performance-critical code
+- [ ] Expensive calculations are cached when possible
+- [ ] Integer arithmetic is used when precision allows
+- [ ] Static vectors are used for constants
+- [ ] **MANDATORY**: Loop type chosen based on logic complexity and data structure
+- [ ] **MANDATORY**: for loops used for arrays/List<T> with index access
+- [ ] **MANDATORY**: foreach loops used for IEnumerable<T> without index needs
+- [ ] **MANDATORY**: while loops used for conditional iteration with complex termination
+- [ ] **MANDATORY**: do-while loops used for guaranteed execution scenarios
+- [ ] **MANDATORY**: Performance vs readability balanced based on context
+- [ ] **MANDATORY**: Collection counts and references cached outside loops
+- [ ] **MANDATORY**: Loop unrolling considered for extreme performance-critical sections
+- [ ] **MANDATORY**: Method calls minimized inside tight loops
+- [ ] **MANDATORY**: Loop fusion applied for multiple operations on same data
+
+### Performance Testing Requirements:
+- [ ] Profile mathematical operations in Update loops
+- [ ] Test collection iteration performance with large datasets
+- [ ] Verify bounds checking performance with many objects
+- [ ] Test vector operation performance in physics calculations
+- [ ] Benchmark matrix transformation performance
+- [ ] Validate caching effectiveness for repeated calculations
+- [ ] Test memory allocation patterns in mathematical code
+- [ ] Verify optimization improvements with profiling tools
+- [ ] **MANDATORY**: Benchmark different loop types for same operations
+- [ ] **MANDATORY**: Test loop performance with different data structure sizes
+- [ ] **MANDATORY**: Profile loop unrolling effectiveness in critical paths
+- [ ] **MANDATORY**: Validate loop fusion performance improvements
+- [ ] **MANDATORY**: Test collection access patterns with different loop types
+- [ ] **MANDATORY**: Measure impact of caching collection counts and references
+
+By following these calculation and iteration rules, you can create highly performant mathematical operations and collection handling that scales effectively in Unity applications.

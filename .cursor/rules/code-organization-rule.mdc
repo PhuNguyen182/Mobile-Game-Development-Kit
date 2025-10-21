@@ -1,0 +1,383 @@
+---
+alwaysApply: true
+---
+
+# Code Organization Rules for Unity Projects
+
+This document outlines mandatory code organization rules that must be followed for all C# code written in Unity projects to ensure maintainability, scalability, and clear project structure.
+
+## 1. Namespace Requirements
+
+### Mandatory Namespace Usage
+- **Rule**: Every C# file MUST have a corresponding namespace
+- **Guidelines**:
+  - Use hierarchical namespace structure: `CompanyName.ProjectName.ModuleName`
+  - Follow the folder structure in the namespace hierarchy
+  - Use PascalCase for namespace names
+  - Avoid global namespace pollution
+- **Examples**:
+  ```csharp
+  // ✅ Proper namespace structure
+  namespace Foundations.Popups.Interfaces
+  {
+      public interface IPopupManager { }
+  }
+  
+  namespace Foundations.Popups.Core
+  {
+      public class PopupManager : MonoBehaviour { }
+  }
+  
+  namespace Foundations.Popups.Data
+  {
+      public class PopupData { }
+  }
+  ```
+
+### Namespace Organization Pattern
+- **Rule**: Organize namespaces by feature/domain, not by technical concerns
+- **Guidelines**:
+  - Group related functionality together
+  - Separate concerns (Interfaces, Core, Data, Views, Presenters)
+  - Use consistent naming patterns across the project
+- **Examples**:
+  ```
+  Foundations.Popups.Interfaces     // All interfaces
+  Foundations.Popups.Core          // Main business logic
+  Foundations.Popups.Data          // Data models and configs
+  Foundations.Popups.Views         // UI components
+  Foundations.Popups.Presenters    // MVP presenters
+  ```
+
+## 2. File Organization Rules
+
+### One Type Per File
+- **Rule**: Each file MUST contain only ONE class, struct, interface, or enum
+- **Guidelines**:
+  - File name must match the type name exactly
+  - No multiple types in a single file
+  - No nested types unless absolutely necessary
+  - Use partial classes only when splitting large files
+- **Examples**:
+  ```csharp
+  // ✅ IPopup.cs
+  namespace Foundations.Popups.Interfaces
+  {
+      public interface IPopup { }
+  }
+  
+  // ✅ PopupManager.cs
+  namespace Foundations.Popups.Core
+  {
+      public class PopupManager : MonoBehaviour { }
+  }
+  
+  // ❌ Multiple types in one file - FORBIDDEN
+  namespace Foundations.Popups
+  {
+      public interface IPopup { }
+      public class PopupManager : MonoBehaviour { } // WRONG!
+  }
+  ```
+
+### File Naming Conventions
+- **Rule**: File names must exactly match the type name
+- **Guidelines**:
+  - Use PascalCase for file names
+  - Include the appropriate extension (.cs)
+  - No abbreviations or shortened names
+- **Examples**:
+  ```
+  ✅ IPopupManager.cs
+  ✅ PopupManager.cs
+  ✅ ConfirmPopupData.cs
+  ✅ PopupType.cs (for enum)
+  
+  ❌ popup_mgr.cs
+  ❌ IPopupMgr.cs
+  ❌ Popup.cs (when class is PopupManager)
+  ```
+
+## 3. Code Structure Requirements
+
+### Feature-Based Organization
+- **Rule**: Organize code by feature/domain, not by technical type
+- **Guidelines**:
+  - Group related functionality together
+  - Separate different features into different folders
+  - Use consistent folder structure across features
+- **Examples**:
+  ```
+  Assets/
+  ├── Foundations/
+  │   ├── Popups/
+  │   │   ├── Interfaces/
+  │   │   ├── Core/
+  │   │   ├── Data/
+  │   │   ├── Views/
+  │   │   └── Presenters/
+  │   └── Audio/
+  │       ├── Interfaces/
+  │       ├── Core/
+  │       ├── Data/
+  │       └── Components/
+  ```
+
+### Mandatory Structure Components
+- **Rule**: Each feature MUST have the following components when applicable:
+
+#### 3.1 Manager Classes
+- **Purpose**: Central coordination and business logic
+- **Naming**: `{FeatureName}Manager`
+- **Location**: `Core/` folder
+- **Examples**:
+  ```csharp
+  // ✅ PopupManager.cs in Core/
+  namespace Foundations.Popups.Core
+  {
+      public class PopupManager : MonoBehaviour, IPopupManager
+      {
+          // Central popup management logic
+      }
+  }
+  ```
+
+#### 3.2 Data Models
+- **Purpose**: Represent business entities and data structures
+- **Naming**: `{EntityName}Data` or `{EntityName}Model`
+- **Location**: `Data/` folder
+- **Requirements**:
+  - Must be serializable with `[Serializable]`
+  - Use camelCase for all fields (Unity convention)
+  - Include constructors for initialization
+- **Examples**:
+  ```csharp
+  // ✅ PlayerData.cs in Data/
+  namespace Foundations.Player.Data
+  {
+      [Serializable]
+      public class PlayerData
+      {
+          public string playerName;
+          public int level;
+          public float experience;
+          
+          public PlayerData(string name, int level, float exp)
+          {
+              playerName = name;
+              this.level = level;
+              experience = exp;
+          }
+      }
+  }
+  ```
+
+#### 3.3 Configuration Classes
+- **Purpose**: Store configuration settings and parameters
+- **Naming**: `{FeatureName}Config` or `{FeatureName}Settings`
+- **Location**: `Data/` or `Config/` folder
+- **Requirements**:
+  - Should be ScriptableObject when possible
+  - Include validation and default values
+  - Use camelCase for all fields
+- **Examples**:
+  ```csharp
+  // ✅ PopupConfig.cs in Data/
+  namespace Foundations.Popups.Data
+  {
+      [CreateAssetMenu(fileName = "PopupConfig", menuName = "Foundations/Popup Config")]
+      public class PopupConfig : ScriptableObject
+      {
+          [Header("Default Settings")]
+          public float defaultAnimationDuration = 0.3f;
+          public int maxConcurrentPopups = 5;
+          public bool enableDebugLogs = false;
+          
+          [Header("UI Settings")]
+          public Color defaultBackgroundColor = Color.black;
+          public float backgroundAlpha = 0.7f;
+      }
+  }
+  ```
+
+#### 3.4 Interface Definitions
+- **Purpose**: Define contracts and abstractions
+- **Naming**: `I{FeatureName}` or `I{EntityName}`
+- **Location**: `Interfaces/` folder
+- **Requirements**:
+  - Use descriptive names starting with 'I'
+  - Include XML documentation
+  - Keep interfaces focused and cohesive
+- **Examples**:
+  ```csharp
+  // ✅ IPopupManager.cs in Interfaces/
+  namespace Foundations.Popups.Interfaces
+  {
+      /// <summary>
+      /// Interface for managing popups in the application
+      /// </summary>
+      public interface IPopupManager
+      {
+          /// <summary>
+          /// Shows a popup of the specified type
+          /// </summary>
+          T ShowPopup<T>() where T : class, IPopup;
+          
+          /// <summary>
+          /// Hides the specified popup
+          /// </summary>
+          void HidePopup(IPopup popup);
+      }
+  }
+  ```
+
+## 4. Folder Structure Standards
+
+### Standard Feature Folder Structure
+- **Rule**: Each feature MUST follow this folder structure:
+```
+FeatureName/
+├── Interfaces/          # All interfaces
+│   ├── IFeatureManager.cs
+│   ├── IFeatureComponent.cs
+│   └── IFeatureData.cs
+├── Core/               # Main business logic
+│   ├── FeatureManager.cs
+│   └── FeatureService.cs
+├── Data/               # Data models and configs
+│   ├── FeatureData.cs
+│   ├── FeatureConfig.cs
+│   └── FeatureSettings.cs
+├── Views/              # UI components (if applicable)
+│   └── FeatureView.cs
+├── Presenters/         # MVP presenters (if applicable)
+│   └── FeaturePresenter.cs
+└── README.md           # Feature documentation
+```
+
+### Cross-Cutting Concerns
+- **Rule**: Place shared utilities in dedicated folders
+- **Guidelines**:
+  - Use `Utilities/` for helper classes
+  - Use `Extensions/` for extension methods
+  - Use `Constants/` for static constants
+  - Use `Enums/` for shared enumerations
+- **Examples**:
+  ```
+  Shared/
+  ├── Utilities/
+  │   ├── MathUtils.cs
+  │   └── StringUtils.cs
+  ├── Extensions/
+  │   ├── GameObjectExtensions.cs
+  │   └── ListExtensions.cs
+  ├── Constants/
+  │   └── GameConstants.cs
+  └── Enums/
+      └── GameState.cs
+  ```
+
+## 5. Documentation Requirements
+
+### File Documentation
+- **Rule**: Each file MUST include proper XML documentation
+- **Guidelines**:
+  - Document all public types and members
+  - Include usage examples for complex classes
+  - Use consistent documentation style
+- **Examples**:
+  ```csharp
+  /// <summary>
+  /// Manages popup lifecycle and provides centralized popup control
+  /// </summary>
+  /// <remarks>
+  /// This manager handles creation, destruction, and coordination of all popups
+  /// in the application following the MVP pattern.
+  /// </remarks>
+  /// <example>
+  /// <code>
+  /// var popupManager = FindObjectOfType&lt;PopupManager&gt;();
+  /// popupManager.ShowPopup&lt;ConfirmPopup&gt;();
+  /// </code>
+  /// </example>
+  public class PopupManager : MonoBehaviour, IPopupManager
+  {
+  }
+  ```
+
+### README Requirements
+- **Rule**: Each feature folder MUST include a README.md
+- **Guidelines**:
+  - Document the feature's purpose and usage
+  - Include setup instructions
+  - Provide code examples
+  - List dependencies and requirements
+- **Example README Structure**:
+  ```markdown
+  # Feature Name
+  
+  ## Overview
+  Brief description of what this feature does.
+  
+  ## Usage
+  Code examples showing how to use the feature.
+  
+  ## Setup
+  Instructions for setting up the feature.
+  
+  ## Dependencies
+  List of required dependencies.
+  
+  ## API Reference
+  Link to detailed API documentation.
+  ```
+
+## 6. Code Quality Standards
+
+### Dependency Management
+- **Rule**: Minimize dependencies between features
+- **Guidelines**:
+  - Use interfaces to decouple implementations
+  - Avoid circular dependencies
+  - Prefer composition over inheritance
+  - Use dependency injection when appropriate
+
+### Error Handling
+- **Rule**: Implement proper error handling and validation
+- **Guidelines**:
+  - Validate inputs in public methods
+  - Use appropriate exception types
+  - Provide meaningful error messages
+  - Handle Unity-specific errors (null references, destroyed objects)
+
+## 7. Enforcement Rules
+
+### Mandatory Compliance
+- **Rule**: These rules MUST be followed for ALL code
+- **Guidelines**:
+  - No exceptions without explicit approval
+  - Code reviews must check compliance
+  - Automated tools should validate structure
+  - Refactor existing code to meet standards
+
+### Code Review Checklist
+- [ ] All files have proper namespaces
+- [ ] One type per file
+- [ ] File names match type names
+- [ ] Feature has proper folder structure
+- [ ] Manager class exists (when applicable)
+- [ ] Data models are properly structured
+- [ ] Configuration classes are present
+- [ ] Interfaces are properly defined
+- [ ] Documentation is complete
+- [ ] README exists for the feature
+
+### Refactoring Guidelines
+- **Rule**: Existing code must be refactored to meet these standards
+- **Guidelines**:
+  - Prioritize by feature usage and complexity
+  - Maintain backward compatibility during transition
+  - Update documentation during refactoring
+  - Test thoroughly after structural changes
+
+By following these code organization rules, the codebase will be more maintainable, scalable, and easier to navigate for all team members.

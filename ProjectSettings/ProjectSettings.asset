@@ -183,7 +183,7 @@ PlayerSettings:
   stripEngineCode: 1
   iPhoneStrippingLevel: 0
   iPhoneScriptCallOptimization: 0
-  ForceInternetPermission: 0
+  ForceInternetPermission: 1
   ForceSDCardPermission: 0
   CreateWallpaper: 0
   androidSplitApplicationBinary: 0
@@ -826,7 +826,25 @@ PlayerSettings:
   webGLCloseOnQuit: 0
   webWasm2023: 0
   webEnableSubmoduleStrippingCompatibility: 0
-  scriptingDefineSymbols: {}
+  scriptingDefineSymbols:
+    Android: CT_OC
+    EmbeddedLinux: CT_OC
+    GameCoreScarlett: CT_OC
+    GameCoreXboxOne: CT_OC
+    Kepler: CT_OC
+    LinuxHeadlessSimulation: CT_OC
+    Nintendo Switch: CT_OC
+    PS4: CT_OC
+    PS5: CT_OC
+    QNX: CT_OC
+    ReservedCFE: CT_OC
+    Standalone: CT_OC
+    VisionOS: CT_OC
+    WebGL: CT_OC
+    Windows Store Apps: CT_OC
+    XboxOne: CT_OC
+    iPhone: CT_OC
+    tvOS: CT_OC
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
@@ -904,7 +922,7 @@ PlayerSettings:
   XboxOneOverrideIdentityPublisher: 
   vrEditorSettings: {}
   cloudServicesEnabled:
-    Purchasing: 0
+    Purchasing: 1
   luminIcon:
     m_Name: 
     m_ModelFolderPath: 

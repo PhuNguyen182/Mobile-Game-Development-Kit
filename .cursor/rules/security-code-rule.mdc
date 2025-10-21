@@ -1,0 +1,878 @@
+---
+alwaysApply: true
+---
+
+# C# Code Security and Safety Rules for Unity Projects
+
+This document outlines mandatory security and safety rules to prevent memory leaks, crashes, and application freezing in Unity projects using C#.
+
+## 1. Memory Leak Prevention
+
+### Proper Resource Disposal
+- **Rule**: Always dispose of resources that implement IDisposable
+- **Guidelines**:
+  - Use `using` statements for automatic disposal
+  - Implement proper cleanup in async methods
+  - Dispose of event subscriptions to prevent memory leaks
+  - Clear collections and references when no longer needed
+- **Examples**:
+  ```csharp
+  // ❌ Memory leak - no disposal
+  public void ProcessFile(string path)
+  {
+      var stream = new FileStream(path, FileMode.Open);
+      var reader = new StreamReader(stream);
+      var content = reader.ReadToEnd();
+      // Missing disposal - memory leak!
+  }
+  
+  // ✅ Proper disposal with using
+  public void ProcessFile(string path)
+  {
+      using var stream = new FileStream(path, FileMode.Open);
+      using var reader = new StreamReader(stream);
+      var content = reader.ReadToEnd();
+      // Automatic disposal
+  }
+  
+  // ✅ Proper async disposal
+  public async UniTask<string> ReadFileAsync(string path)
+  {
+      using var stream = new FileStream(path, FileMode.Open);
+      using var reader = new StreamReader(stream);
+      return await reader.ReadToEndAsync();
+  }
+  
+  // ❌ Event subscription memory leak
+  public class EventListener : MonoBehaviour
+  {
+      void Start()
+      {
+          EventManager.OnPlayerDeath += HandlePlayerDeath;
+          // Missing unsubscription!
+      }
+  }
+  
+  // ✅ Proper event cleanup
+  public class EventListener : MonoBehaviour
+  {
+      void OnEnable()
+      {
+          EventManager.OnPlayerDeath += HandlePlayerDeath;
+      }
+      
+      void OnDisable()
+      {
+          EventManager.OnPlayerDeath -= HandlePlayerDeath;
+      }
+  }
+  ```
+
+### Unity Object Lifecycle Management
+- **Rule**: Properly manage Unity object references to prevent null reference exceptions
+- **Guidelines**:
+  - Use Unity's explicit null checks for Unity objects
+  - Cache component references instead of repeated GetComponent calls
+  - Handle destroyed objects gracefully
+  - Use object pooling for frequently created/destroyed objects
+- **Examples**:
+  ```csharp
+  // ❌ Potential null reference exception
+  public class PlayerController : MonoBehaviour
+  {
+      void Update()
+      {
+          var player = GameObject.Find("Player");
+          player.transform.position = Vector3.zero; // Crashes if player is null
+      }
+  }
+  
+  // ✅ Safe Unity object handling
+  public class PlayerController : MonoBehaviour
+  {
+      private Transform playerTransform;
+      
+      void Start()
+      {
+          var player = GameObject.Find("Player");
+          if (player != null)
+          {
+              playerTransform = player.transform;
+          }
+      }
+      
+      void Update()
+      {
+          // Unity-specific null check
+          if (!Object.ReferenceEquals(playerTransform, null))
+          {
+              playerTransform.position = Vector3.zero;
+          }
+      }
+  }
+  
+  // ✅ Safe component caching
+  public class SafeComponentManager : MonoBehaviour
+  {
+      private Rigidbody cachedRigidbody;
+      private bool isInitialized = false;
+      
+      void Awake()
+      {
+          cachedRigidbody = GetComponent<Rigidbody>();
+          isInitialized = true;
+      }
+      
+      public void ApplyForce(Vector3 force)
+      {
+          if (isInitialized && !Object.ReferenceEquals(cachedRigidbody, null))
+          {
+              cachedRigidbody.AddForce(force);
+          }
+      }
+  }
+  ```
+
+### Collection Management
+- **Rule**: Properly manage collections to prevent memory leaks
+- **Guidelines**:
+  - Clear collections when no longer needed
+  - Use object pooling for temporary collections
+  - Avoid keeping large collections in memory unnecessarily
+  - Implement proper cleanup for custom collections
+- **Examples**:
+  ```csharp
+  // ❌ Memory leak with growing collection
+  public class BadCollectionManager : MonoBehaviour
+  {
+      private List<GameObject> allObjects = new();
+      
+      void Update()
+      {
+          var newObjects = FindObjectsOfType<GameObject>();
+          allObjects.AddRange(newObjects); // Memory leak - never cleared
+      }
+  }
+  
+  // ✅ Safe collection management
+  public class SafeCollectionManager : MonoBehaviour
+  {
+      private readonly List<GameObject> allObjects = new();
+      
+      void Update()
+      {
+          allObjects.Clear(); // Clear before reuse
+          var newObjects = FindObjectsOfType<GameObject>();
+          allObjects.AddRange(newObjects);
+          
+          // Process objects...
+          ProcessObjects();
+      }
+      
+      void OnDestroy()
+      {
+          allObjects.Clear(); // Explicit cleanup
+      }
+  }
+  
+  // ✅ Object pooling to prevent allocations
+  public class SafeObjectPool : MonoBehaviour
+  {
+      private readonly Queue<GameObject> objectPool = new();
+      private readonly List<GameObject> activeObjects = new();
+      
+      public GameObject GetObject()
+      {
+          GameObject obj;
+          if (objectPool.Count > 0)
+          {
+              obj = objectPool.Dequeue();
+              obj.SetActive(true);
+          }
+          else
+          {
+              obj = Instantiate(prefab);
+          }
+          
+          activeObjects.Add(obj);
+          return obj;
+      }
+      
+      public void ReturnObject(GameObject obj)
+      {
+          if (activeObjects.Remove(obj))
+          {
+              obj.SetActive(false);
+              objectPool.Enqueue(obj);
+          }
+      }
+  }
+  ```
+
+## 2. Crash Prevention
+
+### Null Reference Protection
+- **Rule**: Always check for null references before accessing objects
+- **Guidelines**:
+  - Use null-conditional operators where appropriate
+  - Implement defensive programming practices
+  - Validate method parameters
+  - Handle Unity object destruction gracefully
+- **Examples**:
+  ```csharp
+  // ❌ Potential null reference crash
+  public void UpdatePlayerScore(Player player)
+  {
+      player.score += 100; // Crashes if player is null
+      Debug.Log($"Player {player.name} now has {player.score} points");
+  }
+  
+  // ✅ Safe null checking
+  public void UpdatePlayerScore(Player player)
+  {
+      if (player == null)
+      {
+          Debug.LogWarning("Player is null, cannot update score");
+          return;
+      }
+      
+      player.score += 100;
+      Debug.Log($"Player {player.name} now has {player.score} points");
+  }
+  
+  // ✅ Null-conditional operators
+  public void SafePlayerUpdate(Player player)
+  {
+      player?.UpdateScore(100);
+      Debug.Log($"Player name: {player?.name ?? "Unknown"}");
+  }
+  
+  // ✅ Safe Unity object access
+  public void SafeUnityObjectAccess(GameObject obj)
+  {
+      // Unity-specific null check
+      if (!Object.ReferenceEquals(obj, null))
+      {
+          var renderer = obj.GetComponent<Renderer>();
+          if (!Object.ReferenceEquals(renderer, null))
+          {
+              renderer.material.color = Color.red;
+          }
+      }
+  }
+  ```
+
+### Exception Handling
+- **Rule**: Implement proper exception handling to prevent crashes
+- **Guidelines**:
+  - Catch specific exceptions, not general ones
+  - Log errors appropriately for debugging
+  - Provide fallback behavior when possible
+  - Don't suppress exceptions silently
+- **Examples**:
+  ```csharp
+  // ❌ Dangerous exception suppression
+  public void DangerousMethod()
+  {
+      try
+      {
+          RiskyOperation();
+      }
+      catch
+      {
+          // Silent failure - dangerous!
+      }
+  }
+  
+  // ✅ Proper exception handling
+  public void SafeMethod()
+  {
+      try
+      {
+          RiskyOperation();
+      }
+      catch (FileNotFoundException ex)
+      {
+          Debug.LogError($"File not found: {ex.FileName}");
+          // Provide fallback behavior
+          UseDefaultFile();
+      }
+      catch (UnauthorizedAccessException ex)
+      {
+          Debug.LogError($"Access denied: {ex.Message}");
+          // Handle gracefully
+          RequestPermission();
+      }
+      catch (Exception ex)
+      {
+          Debug.LogError($"Unexpected error: {ex.Message}");
+          // Log for debugging but don't crash
+          LogErrorToServer(ex);
+      }
+  }
+  
+  // ✅ Safe async exception handling
+  public async UniTask<bool> SafeAsyncOperation()
+  {
+      try
+      {
+          await RiskyAsyncOperation();
+          return true;
+      }
+      catch (OperationCanceledException)
+      {
+          Debug.Log("Operation was cancelled");
+          return false;
+      }
+      catch (HttpRequestException ex)
+      {
+          Debug.LogError($"Network error: {ex.Message}");
+          return false;
+      }
+      catch (Exception ex)
+      {
+          Debug.LogError($"Async operation failed: {ex.Message}");
+          return false;
+      }
+  }
+  ```
+
+### Input Validation
+- **Rule**: Always validate inputs to prevent crashes from invalid data
+- **Guidelines**:
+  - Validate method parameters
+  - Check array bounds before access
+  - Validate user input before processing
+  - Implement range checks for numeric values
+- **Examples**:
+  ```csharp
+  // ❌ No input validation - potential crash
+  public void ProcessArray(int[] data, int index)
+  {
+      data[index] = 100; // Crashes if index is out of bounds
+  }
+  
+  // ✅ Safe input validation
+  public bool ProcessArray(int[] data, int index)
+  {
+      if (data == null)
+      {
+          Debug.LogWarning("Data array is null");
+          return false;
+      }
+      
+      if (index < 0 || index >= data.Length)
+      {
+          Debug.LogWarning($"Index {index} is out of bounds for array of length {data.Length}");
+          return false;
+      }
+      
+      data[index] = 100;
+      return true;
+  }
+  
+  // ✅ Safe numeric validation
+  public void SetPlayerHealth(int health)
+  {
+      if (health < 0)
+      {
+          Debug.LogWarning("Health cannot be negative");
+          health = 0;
+      }
+      else if (health > maxHealth)
+      {
+          Debug.LogWarning($"Health cannot exceed maximum of {maxHealth}");
+          health = maxHealth;
+      }
+      
+      currentHealth = health;
+  }
+  
+  // ✅ Safe string validation
+  public void SetPlayerName(string name)
+  {
+      if (string.IsNullOrWhiteSpace(name))
+      {
+          Debug.LogWarning("Player name cannot be null or empty");
+          name = "Unknown Player";
+      }
+      
+      if (name.Length > maxNameLength)
+      {
+          Debug.LogWarning($"Name too long, truncating to {maxNameLength} characters");
+          name = name.Substring(0, maxNameLength);
+      }
+      
+      playerName = name;
+  }
+  ```
+
+## 3. Application Freezing Prevention
+
+### Async Operations and Threading
+- **Rule**: Use proper async patterns to prevent UI freezing
+- **Guidelines**:
+  - Use async/await for I/O operations
+  - Avoid blocking the main thread
+  - Use cancellation tokens for long-running operations
+  - Implement progress reporting for user feedback
+- **Examples**:
+  ```csharp
+  // ❌ Blocking operation - freezes UI
+  public void LoadGameData()
+  {
+      var data = LoadDataFromFile(); // Blocks main thread
+      ProcessData(data);
+  }
+  
+  // ✅ Non-blocking async operation
+  public async UniTask LoadGameDataAsync()
+  {
+      try
+      {
+          ShowLoadingIndicator();
+          
+          var data = await LoadDataFromFileAsync();
+          ProcessData(data);
+          
+          HideLoadingIndicator();
+      }
+      catch (Exception ex)
+      {
+          HideLoadingIndicator();
+          Debug.LogError($"Failed to load game data: {ex.Message}");
+          ShowErrorMessage("Failed to load game data");
+      }
+  }
+  
+  // ✅ Safe async with cancellation
+  public async UniTask ProcessLargeDataSetAsync(CancellationToken cancellationToken)
+  {
+      var items = GetLargeDataSet();
+      
+      for (int i = 0; i < items.Count; i++)
+      {
+          cancellationToken.ThrowIfCancellationRequested();
+          
+          await ProcessItemAsync(items[i]);
+          
+          // Update progress to prevent perceived freezing
+          if (i % 100 == 0)
+          {
+              UpdateProgress((float)i / items.Count);
+              await UniTask.Yield(); // Allow UI updates
+          }
+      }
+  }
+  ```
+
+### Coroutine Safety
+- **Rule**: Use coroutines safely to prevent freezing and memory leaks
+- **Guidelines**:
+  - Always store coroutine references for proper stopping
+  - Check for null before starting new coroutines
+  - Implement timeout mechanisms for long-running coroutines
+  - Clean up coroutines in OnDestroy
+- **Examples**:
+  ```csharp
+  // ❌ Dangerous coroutine - no reference stored
+  public void StartDangerousCoroutine()
+  {
+      StartCoroutine(InfiniteLoopCoroutine()); // Can't stop it!
+  }
+  
+  // ✅ Safe coroutine management
+  public class SafeCoroutineManager : MonoBehaviour
+  {
+      private Coroutine currentCoroutine;
+      
+      public void StartSafeCoroutine()
+      {
+          StopCurrentCoroutine();
+          currentCoroutine = StartCoroutine(SafeCoroutine());
+      }
+      
+      private void StopCurrentCoroutine()
+      {
+          if (currentCoroutine != null)
+          {
+              StopCoroutine(currentCoroutine);
+              currentCoroutine = null;
+          }
+      }
+      
+      private IEnumerator SafeCoroutine()
+      {
+          float timeout = 10f; // 10 second timeout
+          float elapsed = 0f;
+          
+          while (elapsed < timeout)
+          {
+              yield return null;
+              elapsed += Time.deltaTime;
+              
+              // Do work here
+              ProcessFrame();
+          }
+          
+          Debug.Log("Coroutine completed safely");
+      }
+      
+      void OnDestroy()
+      {
+          StopCurrentCoroutine();
+      }
+  }
+  ```
+
+### UI Responsiveness
+- **Rule**: Keep UI responsive by avoiding heavy operations on the main thread
+- **Guidelines**:
+  - Use async operations for heavy computations
+  - Implement loading indicators for long operations
+  - Break up heavy operations into smaller chunks
+  - Use background threads for non-Unity operations
+- **Examples**:
+  ```csharp
+  // ❌ Heavy operation on main thread - freezes UI
+  public void ProcessLargeData()
+  {
+      var data = GenerateLargeDataSet(); // Takes 5 seconds
+      ProcessData(data); // UI frozen for 5 seconds
+  }
+  
+  // ✅ Responsive UI with async processing
+  public async void ProcessLargeDataAsync()
+  {
+      ShowLoadingIndicator("Processing data...");
+      
+      try
+      {
+          var data = await GenerateLargeDataSetAsync();
+          await ProcessDataAsync(data);
+          
+          ShowSuccessMessage("Data processed successfully");
+      }
+      catch (Exception ex)
+      {
+          ShowErrorMessage($"Processing failed: {ex.Message}");
+      }
+      finally
+      {
+          HideLoadingIndicator();
+      }
+  }
+  
+  // ✅ Chunked processing to maintain responsiveness
+  public async UniTask ProcessDataInChunks(List<DataItem> items)
+  {
+      const int chunkSize = 100;
+      
+      for (int i = 0; i < items.Count; i += chunkSize)
+      {
+          var chunk = items.GetRange(i, Mathf.Min(chunkSize, items.Count - i));
+          
+          await ProcessChunkAsync(chunk);
+          
+          // Update UI and allow other operations
+          UpdateProgress((float)i / items.Count);
+          await UniTask.Yield();
+      }
+  }
+  ```
+
+## 4. Memory Management Best Practices
+
+### Garbage Collection Optimization
+- **Rule**: Minimize garbage collection pressure to prevent performance issues
+- **Guidelines**:
+  - Reuse objects instead of creating new ones
+  - Use object pooling for frequently created objects
+  - Avoid allocations in Update loops
+  - Cache frequently used values
+- **Examples**:
+  ```csharp
+  // ❌ Creates garbage every frame
+  public class BadMemoryManager : MonoBehaviour
+  {
+      void Update()
+      {
+          var position = new Vector3(1, 2, 3); // Allocation every frame
+          var rotation = new Quaternion(); // Allocation every frame
+          ProcessTransform(position, rotation);
+      }
+  }
+  
+  // ✅ No allocations in Update
+  public class GoodMemoryManager : MonoBehaviour
+  {
+      private readonly Vector3 cachedPosition = new Vector3(1, 2, 3);
+      private readonly Quaternion cachedRotation = Quaternion.identity;
+      
+      void Update()
+      {
+          ProcessTransform(cachedPosition, cachedRotation); // No allocations
+      }
+  }
+  
+  // ✅ String optimization
+  public class StringOptimizer
+  {
+      private readonly StringBuilder stringBuilder = new StringBuilder();
+      
+      public string BuildMessage(string playerName, int score, int level)
+      {
+          stringBuilder.Clear();
+          stringBuilder.Append("Player: ");
+          stringBuilder.Append(playerName);
+          stringBuilder.Append(", Score: ");
+          stringBuilder.Append(score);
+          stringBuilder.Append(", Level: ");
+          stringBuilder.Append(level);
+          
+          return stringBuilder.ToString();
+      }
+  }
+  ```
+
+### Weak References for Event Handling
+- **Rule**: Use weak references to prevent circular references and memory leaks
+- **Guidelines**:
+  - Use WeakReference for cross-object event subscriptions
+  - Implement proper cleanup for event handlers
+  - Avoid strong references in event subscriptions
+  - Use weak event patterns where appropriate
+- **Examples**:
+  ```csharp
+  // ❌ Strong reference - potential memory leak
+  public class StrongReferenceManager : MonoBehaviour
+  {
+      private Player player;
+      
+      void Start()
+      {
+          player = FindObjectOfType<Player>();
+          player.OnHealthChanged += HandleHealthChanged; // Strong reference
+      }
+      
+      void HandleHealthChanged(int newHealth)
+      {
+          // Handler keeps reference to player
+      }
+  }
+  
+  // ✅ Weak reference - prevents memory leaks
+  public class WeakReferenceManager : MonoBehaviour
+  {
+      private WeakReference<Player> playerRef;
+      
+      void Start()
+      {
+          var player = FindObjectOfType<Player>();
+          if (player != null)
+          {
+              playerRef = new WeakReference<Player>(player);
+              player.OnHealthChanged += HandleHealthChanged;
+          }
+      }
+      
+      void HandleHealthChanged(int newHealth)
+      {
+          if (playerRef.TryGetTarget(out var player))
+          {
+              // Player is still alive, process event
+              UpdateHealthUI(newHealth);
+          }
+          else
+          {
+              // Player was destroyed, unsubscribe
+              UnsubscribeFromEvents();
+          }
+      }
+      
+      private void UnsubscribeFromEvents()
+      {
+          if (playerRef?.TryGetTarget(out var player) == true)
+          {
+              player.OnHealthChanged -= HandleHealthChanged;
+          }
+      }
+      
+      void OnDestroy()
+      {
+          UnsubscribeFromEvents();
+      }
+  }
+  ```
+
+## 5. Security and Data Protection
+
+### Input Sanitization
+- **Rule**: Sanitize all inputs to prevent security vulnerabilities
+- **Guidelines**:
+  - Validate and sanitize user inputs
+  - Prevent injection attacks
+  - Limit input length and format
+  - Use parameterized queries for database operations
+- **Examples**:
+  ```csharp
+  // ❌ Unsafe input handling
+  public void ProcessUserInput(string userInput)
+  {
+      var command = $"Process: {userInput}"; // Potential injection
+      ExecuteCommand(command);
+  }
+  
+  // ✅ Safe input sanitization
+  public void ProcessUserInput(string userInput)
+  {
+      if (string.IsNullOrWhiteSpace(userInput))
+      {
+          return;
+      }
+      
+      // Sanitize input
+      var sanitizedInput = SanitizeInput(userInput);
+      
+      // Validate length
+      if (sanitizedInput.Length > maxInputLength)
+      {
+          Debug.LogWarning("Input too long");
+          return;
+      }
+      
+      // Validate format
+      if (!IsValidFormat(sanitizedInput))
+      {
+          Debug.LogWarning("Invalid input format");
+          return;
+      }
+      
+      ProcessSafeInput(sanitizedInput);
+  }
+  
+  private string SanitizeInput(string input)
+  {
+      // Remove potentially dangerous characters
+      return input.Replace("<", "&lt;")
+                  .Replace(">", "&gt;")
+                  .Replace("\"", "&quot;")
+                  .Replace("'", "&#x27;")
+                  .Replace("&", "&amp;");
+  }
+  ```
+
+### Safe File Operations
+- **Rule**: Implement safe file operations to prevent crashes and security issues
+- **Guidelines**:
+  - Validate file paths and permissions
+  - Use try-catch blocks for file operations
+  - Implement proper file locking mechanisms
+  - Validate file sizes and formats
+- **Examples**:
+  ```csharp
+  // ❌ Unsafe file operations
+  public void SaveGameData(string fileName, GameData data)
+  {
+      var json = JsonUtility.ToJson(data);
+      File.WriteAllText(fileName, json); // Can crash or be unsafe
+  }
+  
+  // ✅ Safe file operations
+  public async UniTask<bool> SaveGameDataAsync(string fileName, GameData data)
+  {
+      try
+      {
+          // Validate file path
+          if (!IsValidFilePath(fileName))
+          {
+              Debug.LogError("Invalid file path");
+              return false;
+          }
+          
+          // Check available disk space
+          if (!HasEnoughDiskSpace(fileName, data))
+          {
+              Debug.LogError("Insufficient disk space");
+              return false;
+          }
+          
+          // Create backup
+          await CreateBackupAsync(fileName);
+          
+          // Save data
+          var json = JsonUtility.ToJson(data);
+          await File.WriteAllTextAsync(fileName, json);
+          
+          // Verify save was successful
+          if (File.Exists(fileName))
+          {
+              Debug.Log("Game data saved successfully");
+              return true;
+          }
+          else
+          {
+              Debug.LogError("Failed to save game data");
+              return false;
+          }
+      }
+      catch (UnauthorizedAccessException)
+      {
+          Debug.LogError("Access denied to save file");
+          return false;
+      }
+      catch (IOException ex)
+      {
+          Debug.LogError($"IO error while saving: {ex.Message}");
+          return false;
+      }
+      catch (Exception ex)
+      {
+          Debug.LogError($"Unexpected error while saving: {ex.Message}");
+          return false;
+      }
+  }
+  ```
+
+## Enforcement Rules
+
+### Always Apply These Rules When:
+1. Creating new classes, methods, or systems
+2. Handling user input or external data
+3. Working with files, streams, or network operations
+4. Implementing event systems or callbacks
+5. Managing Unity object lifecycles
+6. Writing async or coroutine-based code
+7. Processing large datasets or collections
+8. Implementing UI interactions
+9. Working with third-party libraries or APIs
+10. Deploying code to production
+
+### Code Review Checklist:
+- [ ] All disposable resources are properly disposed
+- [ ] Event subscriptions are properly unsubscribed
+- [ ] Unity objects are checked for null before use
+- [ ] Input validation is implemented for all user inputs
+- [ ] Exception handling covers all potential failure points
+- [ ] Async operations use proper cancellation tokens
+- [ ] Coroutines are properly managed and stopped
+- [ ] Memory allocations are minimized in hot paths
+- [ ] Weak references are used where appropriate
+- [ ] File operations include proper error handling
+- [ ] No blocking operations on the main thread
+- [ ] Loading indicators are shown for long operations
+- [ ] Progress reporting is implemented for chunked operations
+- [ ] Security measures are in place for input handling
+- [ ] Backup and recovery mechanisms are implemented
+
+### Testing Requirements:
+- [ ] Test with null inputs and edge cases
+- [ ] Test memory usage under stress conditions
+- [ ] Test application behavior when resources are unavailable
+- [ ] Test async operations with cancellation
+- [ ] Test UI responsiveness during heavy operations
+- [ ] Test error handling and recovery scenarios
+- [ ] Test security measures against malicious inputs
+- [ ] Test file operations with various permissions and disk states
+
+By following these security and safety rules, you can create robust, crash-free applications that provide a smooth user experience while maintaining data integrity and system stability.

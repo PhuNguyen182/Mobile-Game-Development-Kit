@@ -5,8 +5,9 @@ using Firebase.Analytics;
 using Firebase.Extensions;
 using Firebase.Messaging;
 using Firebase.RemoteConfig;
-using UnityEngine;
+using Firebase.Crashlytics;
 using Cysharp.Threading.Tasks;
+using UnityEngine;
 
 namespace MBDK.GeneralUsages
 {
@@ -15,6 +16,8 @@ namespace MBDK.GeneralUsages
         private bool _isInitialized;
         private FirebaseApp _firebaseApp;
         private FirebaseRemoteConfig _remoteConfig;
+        
+        public bool IsFirebaseInitialized => this._isInitialized;
 
         public FirebaseService()
         {
@@ -38,6 +41,7 @@ namespace MBDK.GeneralUsages
                         this.InitializeAnalytics();
                         this.InitializeRemoteConfig().Forget();
                         this.InitializeCloudMessaging();
+                        this.InitializeCrashlytics();
                     }
                     else
                     {
@@ -195,27 +199,33 @@ namespace MBDK.GeneralUsages
         }
         
         #endregion
+        
+        #region Firebase Crashlytics
+        private void InitializeCrashlytics()
+        {
+            Crashlytics.ReportUncaughtExceptionsAsFatal = true;
+            Debug.Log($"Firebase Crashlytics Initialized successfully with ReportUncaughtExceptionsAsFatal set to True!");
+        }
+        #endregion
 
         public string GetRemoteConfigString(string key)
         {
-            return IsInitialized() ? FirebaseRemoteConfig.DefaultInstance.GetValue(key).StringValue : string.Empty;
+            return IsFirebaseInitialized ? FirebaseRemoteConfig.DefaultInstance.GetValue(key).StringValue : string.Empty;
         }
 
         public bool GetRemoteConfigBool(string key)
         {
-            return IsInitialized() && FirebaseRemoteConfig.DefaultInstance.GetValue(key).BooleanValue;
+            return IsFirebaseInitialized && FirebaseRemoteConfig.DefaultInstance.GetValue(key).BooleanValue;
         }
 
         public long GetRemoteConfigLong(string key)
         {
-            return IsInitialized() ? FirebaseRemoteConfig.DefaultInstance.GetValue(key).LongValue : 0;
+            return IsFirebaseInitialized ? FirebaseRemoteConfig.DefaultInstance.GetValue(key).LongValue : 0;
         }
-        
-        public bool IsInitialized() => this._isInitialized;
         
         public void Cleanup()
         {
-            if (!IsInitialized()) 
+            if (!IsFirebaseInitialized) 
                 return;
             
             FirebaseMessaging.TokenReceived -= OnTokenReceived;

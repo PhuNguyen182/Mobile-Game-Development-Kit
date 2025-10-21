@@ -1,0 +1,242 @@
+# Cursor AI Ignore File for Unity Project
+# This file tells Cursor AI which files and directories to ignore during indexing and analysis
+
+# ===========================================
+# Unity Generated Files and Folders
+# ===========================================
+Library/
+Temp/
+Obj/
+Build/
+Builds/
+Logs/
+UserSettings/
+MemoryCaptures/
+PackageCache/
+
+# Unity Asset Store and Package Manager
+Assets/AssetStoreTools*
+Packages/manifest.json.backup
+Packages/packages-lock.json
+
+# ===========================================
+# IDE and Editor Files
+# ===========================================
+# Visual Studio
+.vs/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+
+# JetBrains Rider
+.idea/
+*.iml
+
+# VS Code
+.vscode/
+*.code-workspace
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Atom
+.atom/
+
+# ===========================================
+# Build and Deployment Files
+# ===========================================
+ExportedObj/
+*.apk
+*.aab
+*.unitypackage
+*.app
+*.ipa
+*.xap
+*.appx
+*.appxbundle
+crashlytics-build.properties
+
+# ===========================================
+# Platform Specific
+# ===========================================
+# Android
+.gradle/
+local.properties
+proguard/
+
+# iOS
+*.xcodeproj
+*.xcworkspace
+DerivedData/
+*.ipa
+
+# WebGL
+WebGLBuilds/
+
+# ===========================================
+# Unity Addressables and Streaming Assets
+# ===========================================
+Assets/AddressableAssetsData/*/*.bin*
+Assets/StreamingAssets/aa.meta
+Assets/StreamingAssets/aa/*
+Assets/StreamingAssets/WebGL/
+
+# ===========================================
+# Unity Crash Reports and Debug Files
+# ===========================================
+sysinfo.txt
+UnityCrashHandler*
+Unity_*_CrashDump*
+*.stacktrace
+
+# ===========================================
+# Operating System Files
+# ===========================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Linux
+*~
+.directory
+.Trash-*
+
+# ===========================================
+# Cache and Temporary Files
+# ===========================================
+*.tmp
+*.temp
+*.cache
+*.log
+*.bak
+*.backup
+*.old
+*.orig
+*.rej
+*.swp
+*.swo
+*~
+
+# ===========================================
+# Large Asset Files (Uncomment if needed)
+# ===========================================
+# 3D Models
+# *.fbx
+# *.obj
+# *.blend
+# *.mb
+# *.ma
+# *.max
+# *.c4d
+# *.dae
+# *.3ds
+# *.ase
+
+# Textures
+# *.tga
+# *.tiff
+# *.exr
+# *.hdr
+# *.psd
+# *.ai
+
+# Audio
+# *.wav
+# *.mp3
+# *.ogg
+# *.aiff
+# *.m4a
+# *.flac
+
+# Video
+# *.mp4
+# *.mov
+# *.avi
+# *.mkv
+# *.webm
+
+# ===========================================
+# Third-party Packages and Plugins
+# ===========================================
+# Uncomment specific folders as needed
+# Assets/Plugins/
+# Assets/Standard Assets/
+# Assets/Pro Standard Assets/
+# Assets/TextMesh Pro/
+# Assets/PostProcessing/
+
+# ===========================================
+# Documentation and Meta Files
+# ===========================================
+*.md.bak
+*.txt.bak
+README.bak
+CHANGELOG.bak
+
+# ===========================================
+# Version Control
+# ===========================================
+.git/
+.gitignore.bak
+.gitattributes.bak
+
+# ===========================================
+# Node.js (if using npm packages)
+# ===========================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# ===========================================
+# Python (if using Python tools)
+# ===========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# ===========================================
+# Custom Project Specific
+# ===========================================
+# Add your project-specific ignores here
+# Example:
+# Assets/MyCustomFolder/
+# *.myextension
