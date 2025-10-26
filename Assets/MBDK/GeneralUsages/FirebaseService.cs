@@ -15,9 +15,9 @@ namespace MBDK.GeneralUsages
     {
         private bool _isInitialized;
         private FirebaseApp _firebaseApp;
-        private FirebaseRemoteConfig _remoteConfig;
         
         public bool IsFirebaseInitialized => this._isInitialized;
+        public FirebaseRemoteConfigService FirebaseRemoteConfigService { get; private set; }
 
         public FirebaseService()
         {
@@ -39,7 +39,7 @@ namespace MBDK.GeneralUsages
                         _isInitialized = true;
 
                         this.InitializeAnalytics();
-                        this.InitializeRemoteConfig().Forget();
+                        this.InitializeRemoteConfig();
                         this.InitializeCloudMessaging();
                         this.InitializeCrashlytics();
                     }
@@ -76,82 +76,9 @@ namespace MBDK.GeneralUsages
 
         #region Firebase Remote Config
         
-        private async UniTaskVoid InitializeRemoteConfig()
+        private void InitializeRemoteConfig()
         {
-            try
-            {
-                _remoteConfig = FirebaseRemoteConfig.DefaultInstance;
-                _remoteConfig.OnConfigUpdateListener += OnConfigUpdateListener;
-                var configSettings = new ConfigSettings
-                {
-                    MinimumFetchIntervalInMilliseconds = 3600000 // 1 giờ
-                };
-
-                await _remoteConfig.SetConfigSettingsAsync(configSettings);
-                Debug.Log("Firebase Remote Config initialized successfully!");
-                await this.FetchDataAsync();
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"Remote Config initialization failed: {ex.Message}");
-            }
-        }
-
-        private async UniTask FetchDataAsync()
-        {
-            try
-            {
-                await this._remoteConfig.FetchAsync(TimeSpan.Zero).ContinueWithOnMainThread(FetchComplete);
-                Debug.Log("Remote Config fetched and activated!");
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"Remote Config fetch failed: {ex.Message}");
-            }
-        }
-
-        private void FetchComplete(Task fetchTask)
-        {
-            if (!fetchTask.IsCompleted)
-            {
-                Debug.LogError("Retrieval hasn't finished.");
-                return;
-            }
-            
-            ConfigInfo configInfo = _remoteConfig.Info;
-            
-            if (configInfo.LastFetchStatus != LastFetchStatus.Success)
-            {
-                Debug.LogError($"{nameof(FetchComplete)} was unsuccessful\n{nameof(configInfo.LastFetchStatus)}: {configInfo.LastFetchStatus}");
-                return;
-            }
-            
-            _remoteConfig.ActivateAsync().ContinueWithOnMainThread(_ =>
-            {
-                Debug.Log($"Remote data loaded and ready for use. Last fetch time {configInfo.FetchTime}.");
-            });
-        }
-        
-        private void OnConfigUpdateListener(object sender, ConfigUpdateEventArgs e)
-        {
-            if (e.Error != RemoteConfigError.None)
-            {
-                Debug.Log($"Error occurred while listening: {e.Error}");
-                return;
-            }
-
-            string updatedKey = string.Join(", ", e.UpdatedKeys);
-            Debug.Log($"Updated keys: {updatedKey}");
-
-            this._remoteConfig.ActivateAsync().ContinueWithOnMainThread(_ =>
-            {
-                DisplayWelcomeMessage();
-            });
-            
-            void DisplayWelcomeMessage()
-            {
-                Debug.Log("You are now on the latest version of remote config!");
-            }
+            this.FirebaseRemoteConfigService = new FirebaseRemoteConfigService();
         }
         
         #endregion
@@ -207,21 +134,6 @@ namespace MBDK.GeneralUsages
             Debug.Log($"Firebase Crashlytics Initialized successfully with ReportUncaughtExceptionsAsFatal set to True!");
         }
         #endregion
-
-        public string GetRemoteConfigString(string key)
-        {
-            return IsFirebaseInitialized ? FirebaseRemoteConfig.DefaultInstance.GetValue(key).StringValue : string.Empty;
-        }
-
-        public bool GetRemoteConfigBool(string key)
-        {
-            return IsFirebaseInitialized && FirebaseRemoteConfig.DefaultInstance.GetValue(key).BooleanValue;
-        }
-
-        public long GetRemoteConfigLong(string key)
-        {
-            return IsFirebaseInitialized ? FirebaseRemoteConfig.DefaultInstance.GetValue(key).LongValue : 0;
-        }
         
         public void Cleanup()
         {
@@ -230,9 +142,7 @@ namespace MBDK.GeneralUsages
             
             FirebaseMessaging.TokenReceived -= OnTokenReceived;
             FirebaseMessaging.MessageReceived -= OnMessageReceived;
-            
-            if (_remoteConfig != null)
-                _remoteConfig.OnConfigUpdateListener -= OnConfigUpdateListener;
+            this.FirebaseRemoteConfigService.Dispose();
         }
     }
 }
