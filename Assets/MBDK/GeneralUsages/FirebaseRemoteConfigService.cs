@@ -13,12 +13,7 @@ namespace MBDK.GeneralUsages
         private bool _disposed;
         private FirebaseRemoteConfig _remoteConfig;
         
-        public FirebaseRemoteConfigService()
-        {
-            this.InitializeRemoteConfig().Forget();
-        }
-        
-        private async UniTaskVoid InitializeRemoteConfig()
+        public async UniTask InitializeRemoteConfig()
         {
             try
             {
@@ -98,27 +93,37 @@ namespace MBDK.GeneralUsages
         
         public string GetRemoteConfigString(string key)
         {
-            return this._remoteConfig.GetValue(key).StringValue;
+            string value = this._remoteConfig.GetValue(key).StringValue;
+            Debug.Log($"Fetched string value for key {key}: {value}");
+            return value;
         }
 
         public bool GetRemoteConfigBool(string key)
         {
-            return this._remoteConfig.GetValue(key).BooleanValue;
+            bool value = this._remoteConfig.GetValue(key).BooleanValue;
+            Debug.Log($"Fetched bool value for key {key}: {value}");
+            return value;
         }
 
         public long GetRemoteConfigLong(string key)
         {
-            return this._remoteConfig.GetValue(key).LongValue;
+            long value = this._remoteConfig.GetValue(key).LongValue;
+            Debug.Log($"Fetched long value for key {key}: {value}");
+            return value;
         }
         
         public double GetRemoteConfigDouble(string key)
         {
-            return this._remoteConfig.GetValue(key).DoubleValue;
+            double value = this._remoteConfig.GetValue(key).DoubleValue;
+            Debug.Log($"Fetched double value for key {key}: {value}");
+            return value;
         }
         
         public IEnumerable<byte> GetRemoteConfigByteArray(string key)
         {
-            return this._remoteConfig.GetValue(key).ByteArrayValue;
+            IEnumerable<byte> value = this._remoteConfig.GetValue(key).ByteArrayValue;
+            Debug.Log($"Fetched byte array value for key {key}: {value}");
+            return value;
         }
 
         private void ReleaseUnmanagedResources()

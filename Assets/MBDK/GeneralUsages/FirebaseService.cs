@@ -19,12 +19,7 @@ namespace MBDK.GeneralUsages
         public bool IsFirebaseInitialized => this._isInitialized;
         public FirebaseRemoteConfigService FirebaseRemoteConfigService { get; private set; }
 
-        public FirebaseService()
-        {
-            InitializeFirebase().Forget();
-        }
-
-        private async UniTask InitializeFirebase()
+        public async UniTask InitializeFirebase()
         {
             try
             {
@@ -36,12 +31,7 @@ namespace MBDK.GeneralUsages
                         this._firebaseApp = FirebaseApp.DefaultInstance;
                         Debug.Log($"Firebase initialized successfully!\n" +
                                   $"Firebase app name: {this._firebaseApp.Name} with option: {this._firebaseApp.Options}");
-                        _isInitialized = true;
-
-                        this.InitializeAnalytics();
-                        this.InitializeRemoteConfig();
-                        this.InitializeCloudMessaging();
-                        this.InitializeCrashlytics();
+                        this.InitializeServices().Forget();
                     }
                     else
                     {
@@ -55,6 +45,15 @@ namespace MBDK.GeneralUsages
                 Debug.LogError($"Firebase initialization failed: {ex.Message}");
                 this._isInitialized = false;
             }
+        }
+
+        private async UniTaskVoid InitializeServices()
+        {
+            this.InitializeAnalytics();
+            await this.InitializeRemoteConfig();
+            this.InitializeCloudMessaging();
+            this.InitializeCrashlytics();
+            this._isInitialized = true;
         }
 
         #region Firebase Analytics
@@ -76,9 +75,10 @@ namespace MBDK.GeneralUsages
 
         #region Firebase Remote Config
         
-        private void InitializeRemoteConfig()
+        private async UniTask InitializeRemoteConfig()
         {
             this.FirebaseRemoteConfigService = new FirebaseRemoteConfigService();
+            await this.FirebaseRemoteConfigService.InitializeRemoteConfig();
         }
         
         #endregion
