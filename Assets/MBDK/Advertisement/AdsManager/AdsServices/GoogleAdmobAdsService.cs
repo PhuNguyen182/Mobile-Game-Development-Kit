@@ -10,15 +10,15 @@ namespace MBDK.Advertisement.AdsManager.AdsServices
     {
         private const string GoogleAdmobLogTag = "GoogleAdmobAdsService";
         
-        private readonly GoogleAdmobAdsConfig _googleAdmobAdsConfig;
-        private GoogleAdmobBannerAds _googleAdmobBannerAds;
+        private readonly GoogleAdmobAdsConfig googleAdmobAdsConfig;
+        private GoogleAdmobBannerAds googleAdmobBannerAds;
     
         public bool IsAdServiceReady { get; private set; }
 
         public GoogleAdmobAdsService(GoogleAdmobAdsConfig googleAdmobAdsConfig)
         {
             IsAdServiceReady = false;
-            this._googleAdmobAdsConfig = googleAdmobAdsConfig;
+            this.googleAdmobAdsConfig = googleAdmobAdsConfig;
             MobileAds.Initialize(MobilAdsInitializeCallback);
         }
     
@@ -31,14 +31,14 @@ namespace MBDK.Advertisement.AdsManager.AdsServices
 
         private void InitializeBannerAds()
         {
-            string bannerAdUnitId = this._googleAdmobAdsConfig.GetGoogleAdmobBannerAdUnitId();
-            this._googleAdmobBannerAds = new GoogleAdmobBannerAds(bannerAdUnitId);
+            string bannerAdUnitId = this.googleAdmobAdsConfig.GetGoogleAdmobBannerAdUnitId();
+            this.googleAdmobBannerAds = new GoogleAdmobBannerAds(bannerAdUnitId);
             Debug.Log($"[{GoogleAdmobLogTag}] Google Admob banner ads initialized successfully: {bannerAdUnitId}");
         }
     
         public void ToggleBannerAds(bool shouldShowAds)
         {
-            this._googleAdmobBannerAds.ToggleBannerAds(shouldShowAds);
+            this.googleAdmobBannerAds.ToggleBannerAds(shouldShowAds);
         }
 
         public void ShowInterstitialAds(string placement = null) { }

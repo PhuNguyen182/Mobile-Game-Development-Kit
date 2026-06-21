@@ -10,21 +10,21 @@ namespace MBDK.GeneralUsages
 {
     public class FirebaseRemoteConfigService : IDisposable
     {
-        private bool _disposed;
-        private FirebaseRemoteConfig _remoteConfig;
+        private bool disposed;
+        private FirebaseRemoteConfig remoteConfig;
         
         public async UniTask InitializeRemoteConfig()
         {
             try
             {
-                _remoteConfig = FirebaseRemoteConfig.DefaultInstance;
-                _remoteConfig.OnConfigUpdateListener += OnConfigUpdateListener;
+                this.remoteConfig = FirebaseRemoteConfig.DefaultInstance;
+                this.remoteConfig.OnConfigUpdateListener += OnConfigUpdateListener;
                 var configSettings = new ConfigSettings
                 {
                     MinimumFetchIntervalInMilliseconds = 3600000 // 1 giờ
                 };
 
-                await _remoteConfig.SetConfigSettingsAsync(configSettings);
+                await this.remoteConfig.SetConfigSettingsAsync(configSettings);
                 Debug.Log("Firebase Remote Config initialized successfully!");
                 await this.FetchDataAsync();
             }
@@ -38,7 +38,7 @@ namespace MBDK.GeneralUsages
         {
             try
             {
-                await this._remoteConfig.FetchAsync(TimeSpan.Zero).ContinueWithOnMainThread(FetchComplete);
+                await this.remoteConfig.FetchAsync(TimeSpan.Zero).ContinueWithOnMainThread(this.FetchComplete);
                 Debug.Log("Remote Config fetched and activated!");
             }
             catch (Exception ex)
@@ -55,7 +55,7 @@ namespace MBDK.GeneralUsages
                 return;
             }
             
-            ConfigInfo configInfo = _remoteConfig.Info;
+            ConfigInfo configInfo = remoteConfig.Info;
             
             if (configInfo.LastFetchStatus != LastFetchStatus.Success)
             {
@@ -63,7 +63,7 @@ namespace MBDK.GeneralUsages
                 return;
             }
             
-            _remoteConfig.ActivateAsync().ContinueWithOnMainThread(_ =>
+            remoteConfig.ActivateAsync().ContinueWithOnMainThread(_ =>
             {
                 Debug.Log($"Remote data loaded and ready for use. Last fetch time {configInfo.FetchTime}.");
             });
@@ -80,11 +80,12 @@ namespace MBDK.GeneralUsages
             string updatedKey = string.Join(", ", e.UpdatedKeys);
             Debug.Log($"Updated keys: {updatedKey}");
 
-            this._remoteConfig.ActivateAsync().ContinueWithOnMainThread(_ =>
+            this.remoteConfig.ActivateAsync().ContinueWithOnMainThread(_ =>
             {
                 DisplayWelcomeMessage();
             });
-            
+            return;
+
             void DisplayWelcomeMessage()
             {
                 Debug.Log("You are now on the latest version of remote config!");
@@ -93,48 +94,48 @@ namespace MBDK.GeneralUsages
         
         public string GetRemoteConfigString(string key)
         {
-            string value = this._remoteConfig.GetValue(key).StringValue;
+            string value = this.remoteConfig.GetValue(key).StringValue;
             Debug.Log($"Fetched string value for key {key}: {value}");
             return value;
         }
 
         public bool GetRemoteConfigBool(string key)
         {
-            bool value = this._remoteConfig.GetValue(key).BooleanValue;
+            bool value = this.remoteConfig.GetValue(key).BooleanValue;
             Debug.Log($"Fetched bool value for key {key}: {value}");
             return value;
         }
 
         public long GetRemoteConfigLong(string key)
         {
-            long value = this._remoteConfig.GetValue(key).LongValue;
+            long value = this.remoteConfig.GetValue(key).LongValue;
             Debug.Log($"Fetched long value for key {key}: {value}");
             return value;
         }
         
         public double GetRemoteConfigDouble(string key)
         {
-            double value = this._remoteConfig.GetValue(key).DoubleValue;
+            double value = this.remoteConfig.GetValue(key).DoubleValue;
             Debug.Log($"Fetched double value for key {key}: {value}");
             return value;
         }
         
         public IEnumerable<byte> GetRemoteConfigByteArray(string key)
         {
-            IEnumerable<byte> value = this._remoteConfig.GetValue(key).ByteArrayValue;
+            IEnumerable<byte> value = this.remoteConfig.GetValue(key).ByteArrayValue;
             Debug.Log($"Fetched byte array value for key {key}: {value}");
             return value;
         }
 
         private void ReleaseUnmanagedResources()
         {
-            if (_remoteConfig != null)
-                _remoteConfig.OnConfigUpdateListener -= OnConfigUpdateListener;
+            if (remoteConfig != null)
+                remoteConfig.OnConfigUpdateListener -= OnConfigUpdateListener;
         }
 
         private void Dispose(bool disposing)
         {
-            if (this._disposed)
+            if (this.disposed)
                 return;
             
             if (disposing)
@@ -142,7 +143,7 @@ namespace MBDK.GeneralUsages
                 ReleaseUnmanagedResources();
             }
             
-            this._disposed = true;
+            this.disposed = true;
         }
 
         public void Dispose()

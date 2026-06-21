@@ -8,22 +8,22 @@ using UnityEngine;
 
 namespace MBDK.InAppPurchases
 {
-    public class InAppPurchaseManager
+    public class InAppPurchaseManager : IDisposable
     {
         private const string Tag = "InAppPurchaseManager";
         private const string DevelopmentEnvironment = "development";
         private const string ProductionEnvironment = "production";
 
-        private readonly InAppPurchaseProductConfigData _productConfigData;
-        private StoreController _storeController;
-        private Action _onProductBuySuccess;
-        private Action _onProductBuyFailed;
+        private readonly InAppPurchaseProductConfigData productConfigData;
+        private StoreController storeController;
+        private Action onProductBuySuccess;
+        private Action onProductBuyFailed;
 
         public event Action<bool> OnRestoreEvent;
 
         public InAppPurchaseManager(InAppPurchaseProductConfigData productConfigData)
         {
-            this._productConfigData = productConfigData;
+            this.productConfigData = productConfigData;
             Initialize().Forget();
         }
 
@@ -37,8 +37,7 @@ namespace MBDK.InAppPurchases
         {
             try
             {
-                Debug.Log(
-                    $"[{Tag}] Trying to initialize Unity Gaming Services with environment: {DevelopmentEnvironment}");
+                Debug.Log($"[{Tag}] Trying to initialize Unity Gaming Services with environment: {DevelopmentEnvironment}");
                 InitializationOptions option = new InitializationOptions().SetEnvironmentName(DevelopmentEnvironment);
                 await UnityServices.InitializeAsync(option).ContinueWith(_ => onSuccess?.Invoke());
             }
@@ -56,53 +55,49 @@ namespace MBDK.InAppPurchases
                 Debug.LogError(text);
             }
 
-            _storeController = UnityIAPServices.StoreController();
-            _storeController.OnPurchasePending += OnPurchasePending;
-            _storeController.OnPurchaseDeferred += OnPurchaseDeferred;
-            _storeController.OnPurchaseConfirmed += OnPurchaseConfirmed;
-            _storeController.OnPurchaseFailed += OnPurchaseFailed;
-            _storeController.OnStoreDisconnected += OnStoreDisconnected;
-            _storeController.OnCheckEntitlement += OnCheckEntitlement;
-            await _storeController.Connect();
+            storeController = UnityIAPServices.StoreController();
+            storeController.OnPurchasePending += OnPurchasePending;
+            storeController.OnPurchaseDeferred += OnPurchaseDeferred;
+            storeController.OnPurchaseConfirmed += OnPurchaseConfirmed;
+            storeController.OnPurchaseFailed += OnPurchaseFailed;
+            storeController.OnStoreDisconnected += OnStoreDisconnected;
+            storeController.OnCheckEntitlement += OnCheckEntitlement;
+            await storeController.Connect();
             this.FetchProducts();
         }
 
         private void OnUnityServicesInitializeSuccess()
         {
-            Debug.Log(
-                $"[{Tag}] Unity Gaming Services with environment {DevelopmentEnvironment} initialized successfully.]");
+            Debug.Log($"[{Tag}] Unity Gaming Services with environment {DevelopmentEnvironment} initialized successfully.]");
         }
 
         private void OnUnityServicesInitializeFailure(string errorMessage)
         {
-            Debug.LogError(
-                $"[{Tag}] Unity Gaming Services with environment {DevelopmentEnvironment} initialized failed. Error message: {errorMessage}.]");
+            Debug.LogError($"[{Tag}] Unity Gaming Services with environment {DevelopmentEnvironment} initialized failed. Error message: {errorMessage}.]");
         }
 
         private void FetchProducts()
         {
             List<ProductDefinition> productsToFetch = new List<ProductDefinition>();
-            for (int i = 0; i < this._productConfigData.productConfigs.Length; i++)
+            for (int i = 0; i < this.productConfigData.productConfigs.Length; i++)
             {
-                string productId = this._productConfigData.productConfigs[i].GetProductID();
-                ProductType productType = this._productConfigData.productConfigs[i].productType;
+                string productId = this.productConfigData.productConfigs[i].GetProductID();
+                ProductType productType = this.productConfigData.productConfigs[i].productType;
                 ProductDefinition productDefinition = new(productId, productType);
                 productsToFetch.Add(productDefinition);
             }
 
-            _storeController.OnProductsFetched += OnProductsFetched;
-            _storeController.OnProductsFetchFailed += OnProductsFetchFailed;
-            _storeController.FetchProducts(productsToFetch);
+            storeController.OnProductsFetched += OnProductsFetched;
+            storeController.OnProductsFetchFailed += OnProductsFetchFailed;
+            storeController.FetchProducts(productsToFetch);
         }
 
         private void OnProductsFetchFailed(ProductFetchFailed productFetchFailed)
         {
-            Debug.LogError(
-                $"[{Tag}] All products fetched failed. More information: {productFetchFailed.FailureReason}");
+            Debug.LogError($"[{Tag}] All products fetched failed. More information: {productFetchFailed.FailureReason}");
             foreach (var productDefinition in productFetchFailed.FailedFetchProducts)
             {
-                Debug.LogError(
-                    $"[{Tag}] Fetch Error: Product ID: {productDefinition.id}, Product Type: {productDefinition.type}");
+                Debug.LogError($"[{Tag}] Fetch Error: Product ID: {productDefinition.id}, Product Type: {productDefinition.type}");
             }
         }
 
@@ -111,8 +106,7 @@ namespace MBDK.InAppPurchases
             Debug.Log($"[{Tag}] All products fetched successfully.");
             foreach (var product in products)
             {
-                Debug.Log(
-                    $"[{Tag}] Product ID: {product.definition.id}, Product Type: {product.definition.type}, Price: {product.metadata.localizedPriceString}");
+                Debug.Log($"[{Tag}] Product ID: {product.definition.id}, Product Type: {product.definition.type}, Price: {product.metadata.localizedPriceString}");
             }
         }
 
@@ -123,28 +117,25 @@ namespace MBDK.InAppPurchases
 
         private void OnCheckEntitlement(Entitlement entitlement)
         {
-            Debug.Log(
-                $"[{Tag}] Checking entitlement... More information:\nStatus: {entitlement.Status}, Product ID: {entitlement.Product?.definition.id}, Error message: {entitlement.ErrorMessage}");
+            Debug.Log($"[{Tag}] Checking entitlement... More information:\nStatus: {entitlement.Status}, Product ID: {entitlement.Product?.definition.id}, Error message: {entitlement.ErrorMessage}");
         }
 
         private void OnStoreDisconnected(StoreConnectionFailureDescription description)
         {
-            Debug.LogError(
-                $"[{Tag}] Store disconnected. More information: {description.Message}. Can it retryable: {description.IsRetryable}.");
+            Debug.LogError($"[{Tag}] Store disconnected. More information: {description.Message}. Can it retryable: {description.IsRetryable}.");
             this.ExecutePurchaseFailedCallback();
         }
 
         private void OnPurchaseFailed(FailedOrder order)
         {
-            Debug.LogError(
-                $"[{Tag}] Your product purchase failed. More information: {order.Details}\nReason failed: {order.FailureReason}\nTransactionID: {order.Info.TransactionID}");
+            Debug.LogError($"[{Tag}] Your product purchase failed. More information: {order.Details}\nReason failed: {order.FailureReason}\nTransactionID: {order.Info.TransactionID}");
             this.ExecutePurchaseFailedCallback();
         }
 
         private void OnPurchasePending(PendingOrder order)
         {
             Debug.Log($"[{Tag}] Your purchase is pending.");
-            this._storeController.ConfirmPurchase(order);
+            this.storeController.ConfirmPurchase(order);
         }
 
         private void OnPurchaseConfirmed(Order order)
@@ -157,35 +148,35 @@ namespace MBDK.InAppPurchases
         private void ExecutePurchaseSuccessCallback()
         {
             Debug.Log($"[{Tag}] Buying product success.");
-            this._onProductBuySuccess?.Invoke();
-            this._onProductBuySuccess = null;
+            this.onProductBuySuccess?.Invoke();
+            this.onProductBuySuccess = null;
         }
 
         private void ExecutePurchaseFailedCallback()
         {
             Debug.Log($"[{Tag}] Buying product failed.");
-            this._onProductBuyFailed?.Invoke();
-            this._onProductBuyFailed = null;
+            this.onProductBuyFailed?.Invoke();
+            this.onProductBuyFailed = null;
         }
 
         private void SetupPurchaseCallbacks(Action onBuySuccess = null, Action onBuyFailed = null)
         {
             Debug.Log($"[{Tag}] Setting up callbacks for product purchase.");
-            this._onProductBuySuccess = onBuySuccess;
-            this._onProductBuyFailed = onBuyFailed;
+            this.onProductBuySuccess = onBuySuccess;
+            this.onProductBuyFailed = onBuyFailed;
         }
 
         public void BuyProduct(string productId, Action onBuySuccess = null, Action onBuyFailed = null)
         {
             Debug.Log($"[{Tag}] Start buying product: {productId}");
-            this._storeController.PurchaseProduct(productId);
+            this.storeController.PurchaseProduct(productId);
             this.SetupPurchaseCallbacks(onBuySuccess, onBuyFailed);
         }
 
         public void RestorePurchase()
         {
             Debug.Log($"[{Tag}] Starting restore transactions...");
-            this._storeController.RestoreTransactions(OnRestoreTransactionsSuccess);
+            this.storeController.RestoreTransactions(OnRestoreTransactionsSuccess);
         }
 
         private void OnRestoreTransactionsSuccess(bool success, string error)
@@ -195,6 +186,18 @@ namespace MBDK.InAppPurchases
                 : $"[{Tag}] Failed to restore transactions: {error}";
             Debug.Log(message);
             OnRestoreEvent?.Invoke(success);
+        }
+
+        public void Dispose()
+        {
+            storeController.OnPurchasePending -= OnPurchasePending;
+            storeController.OnPurchaseDeferred -= OnPurchaseDeferred;
+            storeController.OnPurchaseConfirmed -= OnPurchaseConfirmed;
+            storeController.OnPurchaseFailed -= OnPurchaseFailed;
+            storeController.OnStoreDisconnected -= OnStoreDisconnected;
+            storeController.OnCheckEntitlement -= OnCheckEntitlement;
+            storeController.OnProductsFetched -= OnProductsFetched;
+            storeController.OnProductsFetchFailed -= OnProductsFetchFailed;
         }
     }
 }

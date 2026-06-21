@@ -4,17 +4,17 @@ using UnityEngine;
 
 namespace MBDK.Advertisement.AdsAdapters.Max
 {
-    public class MaxRewardedAds
+    public class MaxRewardedAds : IDisposable
     {
         private const string MaxRewardedLogTag = "MaxRewardedAds";
 
-        private int _retryAttempt;
-        private Action _onReceivedRewardAfterAdShow;
-        private readonly string _rewardedUnitId;
+        private int retryAttempt;
+        private Action onReceivedRewardAfterAdShow;
+        private readonly string rewardedUnitId;
 
         public MaxRewardedAds(string rewardedUnitId)
         {
-            this._rewardedUnitId = rewardedUnitId;
+            this.rewardedUnitId = rewardedUnitId;
             MaxSdkCallbacks.Rewarded.OnAdLoadedEvent += OnRewardedAdLoadedEvent;
             MaxSdkCallbacks.Rewarded.OnAdLoadFailedEvent += OnRewardedAdLoadFailedEvent;
             MaxSdkCallbacks.Rewarded.OnAdDisplayedEvent += OnRewardedAdDisplayedEvent;
@@ -28,24 +28,24 @@ namespace MBDK.Advertisement.AdsAdapters.Max
             this.LoadRewardedAd();
         }
 
-        public void ShowRewardedAds(string placement = null, Action onReceivedRewardAfterAdShow = null)
+        public void ShowRewardedAds(string placement = null, Action onReceivedRewardAfterAdShowCallback = null)
         {
-            if (MaxSdkUnityEditor.IsRewardedAdReady(_rewardedUnitId))
+            if (MaxSdk.IsRewardedAdReady(rewardedUnitId))
             {
-                Debug.Log($"[{MaxRewardedLogTag}] Show rewarded ad: {this._rewardedUnitId} at placement: {placement}");
-                MaxSdkUnityEditor.ShowRewardedAd(_rewardedUnitId);
-                this._onReceivedRewardAfterAdShow = onReceivedRewardAfterAdShow;
+                Debug.Log($"[{MaxRewardedLogTag}] Show rewarded ad: {this.rewardedUnitId} at placement: {placement}");
+                MaxSdk.ShowRewardedAd(rewardedUnitId);
+                this.onReceivedRewardAfterAdShow = onReceivedRewardAfterAdShowCallback;
             }
             else
             {
-                Debug.LogError($"[{MaxRewardedLogTag}] Rewarded ad not ready: {this._rewardedUnitId}");
+                Debug.LogError($"[{MaxRewardedLogTag}] Rewarded ad not ready: {this.rewardedUnitId}");
             }
         }
 
         private void LoadRewardedAd()
         {
-            Debug.Log($"[{MaxRewardedLogTag}] Loading rewarded ad: {this._rewardedUnitId}");
-            MaxSdkUnityEditor.LoadRewardedAd(_rewardedUnitId);
+            Debug.Log($"[{MaxRewardedLogTag}] Loading rewarded ad: {this.rewardedUnitId}");
+            MaxSdk.LoadRewardedAd(rewardedUnitId);
         }
 
         private async UniTask LoadRewardedAdAsyncWithDelay(float delay)
@@ -57,16 +57,15 @@ namespace MBDK.Advertisement.AdsAdapters.Max
         private void OnRewardedAdLoadedEvent(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
             Debug.Log($"[{MaxRewardedLogTag}] Rewarded ad loaded with id {adUnitId} at placement {adInfo.Placement}");
-            this._retryAttempt = 0;
+            this.retryAttempt = 0;
         }
 
         private void OnRewardedAdLoadFailedEvent(string adUnitId, MaxSdkBase.ErrorInfo errorInfo)
         {
-            Debug.LogError(
-                $"[{MaxRewardedLogTag}] Rewarded ad load failed with id {adUnitId} with error code: {errorInfo.Code}, information: {errorInfo.Message}, retry count: [{this._retryAttempt}]");
+            Debug.LogError($"[{MaxRewardedLogTag}] Rewarded ad load failed with id {adUnitId} with error code: {errorInfo.Code}, information: {errorInfo.Message}, retry count: [{this.retryAttempt}]");
 
-            this._retryAttempt++;
-            double retryDelay = Mathf.Pow(2, Mathf.Min(6, this._retryAttempt));
+            this.retryAttempt++;
+            double retryDelay = Mathf.Pow(2, Mathf.Min(6, this.retryAttempt));
 
             Debug.Log($"[{MaxRewardedLogTag}] Retrying in {retryDelay} seconds]");
             this.LoadRewardedAdAsyncWithDelay((float)retryDelay).Forget();
@@ -80,8 +79,7 @@ namespace MBDK.Advertisement.AdsAdapters.Max
         private void OnRewardedAdFailedToDisplayEvent(string adUnitId, MaxSdkBase.ErrorInfo errorInfo,
             MaxSdkBase.AdInfo adInfo)
         {
-            Debug.LogError(
-                $"[{MaxRewardedLogTag}] Rewarded ad failed to display with id {adUnitId} with error code: {errorInfo.Code}, information: {errorInfo.Message}");
+            Debug.LogError($"[{MaxRewardedLogTag}] Rewarded ad failed to display with id {adUnitId} with error code: {errorInfo.Code}, information: {errorInfo.Message}");
             this.LoadRewardedAd();
         }
 
@@ -98,29 +96,39 @@ namespace MBDK.Advertisement.AdsAdapters.Max
 
         private void OnRewardedAdReceivedRewardEvent(string adUnitId, MaxSdkBase.Reward reward, MaxSdkBase.AdInfo adInfo)
         {
-            Debug.Log(
-                $"[{MaxRewardedLogTag}] Rewarded ad received reward with id {adUnitId} at placement {adInfo.Placement}.\nReward: [label: {reward.Label}, amount: {reward.Amount}]");
-            this._onReceivedRewardAfterAdShow?.Invoke();
-            this._onReceivedRewardAfterAdShow = null;
+            Debug.Log($"[{MaxRewardedLogTag}] Rewarded ad received reward with id {adUnitId} at placement {adInfo.Placement}.\nReward: [label: {reward.Label}, amount: {reward.Amount}]");
+            this.onReceivedRewardAfterAdShow?.Invoke();
+            this.onReceivedRewardAfterAdShow = null;
         }
 
         private void OnRewardedAdRevenuePaidEvent(string adUnitId, MaxSdkBase.AdInfo adInfo)
         {
-            Debug.Log(
-                $"[{MaxRewardedLogTag}] Rewarded ad revenue paid with id {adUnitId} at placement {adInfo.Placement}. Revenue: {adInfo.RevenuePrecision}");
+            Debug.Log($"[{MaxRewardedLogTag}] Rewarded ad revenue paid with id {adUnitId} at placement {adInfo.Placement}. Revenue: {adInfo.RevenuePrecision}");
         }
 
         private void OnExpiredAdReloadedEvent(string adUnityId, MaxSdkBase.AdInfo expiredAdInfo, MaxSdkBase.AdInfo adInfo)
         {
-            Debug.Log(
-                $"[{MaxRewardedLogTag}] Rewarded ad expired with id {adUnityId} at placement {expiredAdInfo.Placement}, reloading...");
+            Debug.Log($"[{MaxRewardedLogTag}] Rewarded ad expired with id {adUnityId} at placement {expiredAdInfo.Placement}, reloading...");
         }
 
         private void OnAdReviewCreativeIdGeneratedEvent(string adUnitId, string adReviewCreativeId,
             MaxSdkBase.AdInfo adInfo)
         {
-            Debug.Log(
-                $"[{MaxRewardedLogTag}] Ad review ad with unit id {adUnitId} creative id generated: {adReviewCreativeId}");
+            Debug.Log($"[{MaxRewardedLogTag}] Ad review ad with unit id {adUnitId} creative id generated: {adReviewCreativeId}");
+        }
+
+        public void Dispose()
+        {
+            MaxSdkCallbacks.Rewarded.OnAdLoadedEvent -= OnRewardedAdLoadedEvent;
+            MaxSdkCallbacks.Rewarded.OnAdLoadFailedEvent -= OnRewardedAdLoadFailedEvent;
+            MaxSdkCallbacks.Rewarded.OnAdDisplayedEvent -= OnRewardedAdDisplayedEvent;
+            MaxSdkCallbacks.Rewarded.OnAdClickedEvent -= OnRewardedAdClickedEvent;
+            MaxSdkCallbacks.Rewarded.OnAdRevenuePaidEvent -= OnRewardedAdRevenuePaidEvent;
+            MaxSdkCallbacks.Rewarded.OnAdHiddenEvent -= OnRewardedAdHiddenEvent;
+            MaxSdkCallbacks.Rewarded.OnAdDisplayFailedEvent -= OnRewardedAdFailedToDisplayEvent;
+            MaxSdkCallbacks.Rewarded.OnAdReceivedRewardEvent -= OnRewardedAdReceivedRewardEvent;
+            MaxSdkCallbacks.Rewarded.OnAdReviewCreativeIdGeneratedEvent -= OnAdReviewCreativeIdGeneratedEvent;
+            MaxSdkCallbacks.Rewarded.OnExpiredAdReloadedEvent -= OnExpiredAdReloadedEvent;
         }
     }
 }

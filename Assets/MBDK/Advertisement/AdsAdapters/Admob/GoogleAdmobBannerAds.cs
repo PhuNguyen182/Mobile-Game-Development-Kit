@@ -7,47 +7,47 @@ namespace MBDK.Advertisement.AdsAdapters.Admob
     {
         private const string GoogleAdmobBannerLogTag = "GoogleAdmobBannerAds";
     
-        private BannerView _bannerView;
-        private readonly string _bannerUnitId;
+        private BannerView bannerView;
+        private readonly string bannerUnitId;
     
         public GoogleAdmobBannerAds(string bannerUnitId)
         {
-            this._bannerUnitId = bannerUnitId;
+            this.bannerUnitId = bannerUnitId;
             this.DestroyBannerAds();
             this.CreateBannerAds();
         }
 
         public void ToggleBannerAds(bool shouldShowAds)
         {
-            if (this._bannerView == null)
+            if (this.bannerView == null)
             {
-                Debug.Log($"[{GoogleAdmobBannerLogTag}] Cannot toggle this banner ads: {this._bannerUnitId} - Banner view is null");
+                Debug.Log($"[{GoogleAdmobBannerLogTag}] Cannot toggle this banner ads: {this.bannerUnitId} - Banner view is null");
                 return;    
             }
         
             if (shouldShowAds)
             {
-                Debug.Log($"[{GoogleAdmobBannerLogTag}] Show banner ads: {this._bannerUnitId}");
-                this._bannerView.Show();
+                Debug.Log($"[{GoogleAdmobBannerLogTag}] Show banner ads: {this.bannerUnitId}");
+                this.bannerView.Show();
             }
             else
             {
-                Debug.Log($"[{GoogleAdmobBannerLogTag}] Hide banner ads: {this._bannerUnitId}");
-                this._bannerView.Hide();
+                Debug.Log($"[{GoogleAdmobBannerLogTag}] Hide banner ads: {this.bannerUnitId}");
+                this.bannerView.Hide();
             }
         }
 
         private void CreateBannerAds()
         {
-            this._bannerView = new BannerView(this._bannerUnitId, AdSize.Banner, AdPosition.Bottom);
+            this.bannerView = new BannerView(this.bannerUnitId, AdSize.Banner, AdPosition.Bottom);
         
-            this._bannerView.OnAdPaid += OnAdPaid;
-            this._bannerView.OnBannerAdLoaded += OnBannerAdLoaded;
-            this._bannerView.OnBannerAdLoadFailed += OnBannerAdLoadFailed;
-            this._bannerView.OnAdImpressionRecorded += OnAdImpressionRecorded;
-            this._bannerView.OnAdFullScreenContentOpened += OnAdFullScreenContentOpened;
-            this._bannerView.OnAdFullScreenContentClosed += OnAdFullScreenContentClosed;
-            this._bannerView.OnAdClicked += OnAdClicked;
+            this.bannerView.OnAdPaid += OnAdPaid;
+            this.bannerView.OnBannerAdLoaded += OnBannerAdLoaded;
+            this.bannerView.OnBannerAdLoadFailed += OnBannerAdLoadFailed;
+            this.bannerView.OnAdImpressionRecorded += OnAdImpressionRecorded;
+            this.bannerView.OnAdFullScreenContentOpened += OnAdFullScreenContentOpened;
+            this.bannerView.OnAdFullScreenContentClosed += OnAdFullScreenContentClosed;
+            this.bannerView.OnAdClicked += OnAdClicked;
             this.LoadBannerAds();
         }
 
@@ -73,8 +73,7 @@ namespace MBDK.Advertisement.AdsAdapters.Admob
 
         private void OnAdPaid(AdValue adValue)
         {
-            Debug.Log(
-                $"[{GoogleAdmobBannerLogTag}] Banner ad paid! Currency code: {adValue.CurrencyCode} with value: {adValue.Value} and precision: {adValue.Precision}");
+            Debug.Log($"[{GoogleAdmobBannerLogTag}] Banner ad paid! Currency code: {adValue.CurrencyCode} with value: {adValue.Value} and precision: {adValue.Precision}");
         }
 
         private void OnBannerAdLoadFailed(LoadAdError adError)
@@ -89,21 +88,29 @@ namespace MBDK.Advertisement.AdsAdapters.Admob
 
         private void LoadBannerAds()
         {
-            Debug.Log($"[{GoogleAdmobBannerLogTag}] Load banner ads: {this._bannerUnitId}");
-            this._bannerView.LoadAd(new AdRequest());
+            Debug.Log($"[{GoogleAdmobBannerLogTag}] Load banner ads: {this.bannerUnitId}");
+            this.bannerView.LoadAd(new AdRequest());
         }
     
         private void DestroyBannerAds()
         {
-            if (this._bannerView == null)
+            if (this.bannerView == null)
             {
-                Debug.Log($"[{GoogleAdmobBannerLogTag}] Cannot destroy this banner ads: {this._bannerUnitId} - Banner view is null");
+                Debug.Log($"[{GoogleAdmobBannerLogTag}] Cannot destroy this banner ads: {this.bannerUnitId} - Banner view is null");
                 return;
             }
 
-            Debug.Log($"[{GoogleAdmobBannerLogTag}] Destroy banner ads: {this._bannerUnitId}");
-            this._bannerView.Destroy();
-            this._bannerView = null;
+            Debug.Log($"[{GoogleAdmobBannerLogTag}] Destroy banner ads: {this.bannerUnitId}");
+            this.bannerView.OnAdPaid -= OnAdPaid;
+            this.bannerView.OnBannerAdLoaded -= OnBannerAdLoaded;
+            this.bannerView.OnBannerAdLoadFailed -= OnBannerAdLoadFailed;
+            this.bannerView.OnAdImpressionRecorded -= OnAdImpressionRecorded;
+            this.bannerView.OnAdFullScreenContentOpened -= OnAdFullScreenContentOpened;
+            this.bannerView.OnAdFullScreenContentClosed -= OnAdFullScreenContentClosed;
+            this.bannerView.OnAdClicked -= OnAdClicked;
+            
+            this.bannerView.Destroy();
+            this.bannerView = null;
         }
     }
 }

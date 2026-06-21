@@ -7,61 +7,61 @@ namespace MBDK.Advertisement.AdsManager
 {
     public class AdsManager : IAdsManager
     {
-        private readonly AdsServiceConfigData _adsServiceConfigData;
-        private readonly AdsCooldownController _adsCooldownController;
-        private readonly IAdsService _maxAdsService;
-        private readonly IAdsService _googleAdsService;
+        private readonly AdsServiceConfigData adsServiceConfigData;
+        private readonly AdsCooldownController adsCooldownController;
+        private readonly IAdsService maxAdsService;
+        private readonly IAdsService googleAdsService;
 
         public AdsManager(AdsServiceConfigData adsServiceConfigData, MaxAdsConfig maxAdsConfig,
             GoogleAdmobAdsConfig googleAdmobAdsConfig)
         {
-            this._adsServiceConfigData = adsServiceConfigData;
-            this._adsCooldownController = new AdsCooldownController();
-            this._adsCooldownController.SetCooldownDuration(this._adsServiceConfigData.interstitialAdsCooldown);
-            this._maxAdsService = new MaxAdsService(maxAdsConfig);
-            this._googleAdsService = new GoogleAdmobAdsService(googleAdmobAdsConfig);
+            this.adsServiceConfigData = adsServiceConfigData;
+            this.adsCooldownController = new AdsCooldownController();
+            this.adsCooldownController.SetCooldownDuration(this.adsServiceConfigData.interstitialAdsCooldown);
+            this.maxAdsService = new MaxAdsService(maxAdsConfig);
+            this.googleAdsService = new GoogleAdmobAdsService(googleAdmobAdsConfig);
         }
 
         public void ToggleBannerAds(bool shouldShowAds)
         {
-            switch (_adsServiceConfigData.bannerAdsServiceType)
+            switch (adsServiceConfigData.bannerAdsServiceType)
             {
-                case AdsServiceType.Max:
-                    this._maxAdsService.ToggleBannerAds(shouldShowAds);
+                case AdsServiceType.AppLovin:
+                    this.maxAdsService.ToggleBannerAds(shouldShowAds);
                     break;
-                case AdsServiceType.Google:
-                    this._googleAdsService.ToggleBannerAds(shouldShowAds);
+                case AdsServiceType.Admob:
+                    this.googleAdsService.ToggleBannerAds(shouldShowAds);
                     break;
             }
         }
 
         public void ShowInterstitialAds(string placement = null)
         {
-            if (!this._adsCooldownController.CanShowAds())
+            if (!this.adsCooldownController.CanShowAds())
                 return;
             
-            switch (_adsServiceConfigData.interstitialAdsServiceType)
+            switch (adsServiceConfigData.interstitialAdsServiceType)
             {
-                case AdsServiceType.Max:
-                    this._maxAdsService.ShowInterstitialAds(placement);
+                case AdsServiceType.AppLovin:
+                    this.maxAdsService.ShowInterstitialAds(placement);
                     break;
-                case AdsServiceType.Google:
-                    this._googleAdsService.ShowInterstitialAds(placement);
+                case AdsServiceType.Admob:
+                    this.googleAdsService.ShowInterstitialAds(placement);
                     break;
             }
             
-            this._adsCooldownController.MarkAdsShown();
+            this.adsCooldownController.MarkAdsShown();
         }
 
         public void ShowRewardedAds(string placement = null, Action onReceivedRewardAfterAdShow = null)
         {
-            switch (_adsServiceConfigData.rewardedAdsServiceType)
+            switch (adsServiceConfigData.rewardedAdsServiceType)
             {
-                case AdsServiceType.Max:
-                    this._maxAdsService.ShowRewardedAds(placement, onReceivedRewardAfterAdShow);
+                case AdsServiceType.AppLovin:
+                    this.maxAdsService.ShowRewardedAds(placement, onReceivedRewardAfterAdShow);
                     break;
-                case AdsServiceType.Google:
-                    this._googleAdsService.ShowRewardedAds(placement, onReceivedRewardAfterAdShow);
+                case AdsServiceType.Admob:
+                    this.googleAdsService.ShowRewardedAds(placement, onReceivedRewardAfterAdShow);
                     break;
             }
         }

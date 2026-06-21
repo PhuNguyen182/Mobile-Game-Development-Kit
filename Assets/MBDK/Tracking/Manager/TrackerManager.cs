@@ -8,20 +8,21 @@ namespace MBDK.Tracking.Manager
 {
     public class TrackerManager : ITrackerManager, IDisposable
     {
-        private bool _isDisposed;
-        private readonly List<ITracker> _trackers;
-        private readonly AdjustConfigScriptableObject _adjustConfig;
+        private bool isDisposed;
+        private readonly List<ITracker> trackers;
+        private readonly AdjustConfigScriptableObject adjustConfig;
         
         public TrackerManager(AdjustConfigScriptableObject adjustConfig)
         {
-            _trackers = new List<ITracker>();
+            trackers = new List<ITracker>();
+            this.adjustConfig = adjustConfig;
             InitializeTrackers();
         }
 
         private void InitializeTrackers()
         {
             ITracker firebaseTracker = new FirebaseTracker();
-            ITracker adjustTracker = new AdjustTracker(_adjustConfig);
+            ITracker adjustTracker = new AdjustTracker(adjustConfig);
             AddTracker(firebaseTracker);
             AddTracker(adjustTracker);
             InjectAllTrackers();
@@ -30,26 +31,26 @@ namespace MBDK.Tracking.Manager
 
         public void InjectAllTrackers()
         {
-            for (int i = 0; i < this._trackers.Count; i++)
+            for (int i = 0; i < this.trackers.Count; i++)
             {
-                this._trackers[i].InjectDependencies(this);
+                this.trackers[i].InjectDependencies(this);
             }
         }
 
         public void StartAllTrackers()
         {
-            for (int i = 0; i < this._trackers.Count; i++)
+            for (int i = 0; i < this.trackers.Count; i++)
             {
-                this._trackers[i].Start();
+                this.trackers[i].Start();
             }
         }
 
         public ITracker GetTracker(TrackerType trackerType)
         {
-            for (int i = 0; i < this._trackers.Count; i++)
+            for (int i = 0; i < this.trackers.Count; i++)
             {
-                if (this._trackers[i].TrackerType == trackerType)
-                    return this._trackers[i];
+                if (this.trackers[i].TrackerType == trackerType)
+                    return this.trackers[i];
             }
             
             return null;
@@ -57,39 +58,39 @@ namespace MBDK.Tracking.Manager
 
         public void AddTracker(ITracker tracker)
         {
-            this._trackers.Add(tracker);
+            this.trackers.Add(tracker);
         }
 
         public void RemoveTracker(ITracker tracker)
         {
-            this._trackers.Remove(tracker);
+            this.trackers.Remove(tracker);
         }
 
         public void LogEvent(string eventName)
         {
-            for (int i = 0; i < this._trackers.Count; i++)
+            for (int i = 0; i < this.trackers.Count; i++)
             {
-                this._trackers[i].LogEvent(eventName);
+                this.trackers[i].LogEvent(eventName);
             }
         }
 
         public void LogEvent(string eventName, ITrackingParameterBuilder trackingParameterBuilder)
         {
-            for (int i = 0; i < this._trackers.Count; i++)
+            for (int i = 0; i < this.trackers.Count; i++)
             {
-                this._trackers[i].LogEvent(eventName, trackingParameterBuilder);
+                this.trackers[i].LogEvent(eventName, trackingParameterBuilder);
             }
         }
 
         public void ClearTrackers()
         {
-            for (int i = 0; i < this._trackers.Count; i++)
+            for (int i = 0; i < this.trackers.Count; i++)
             {
-                if (this._trackers[i] is IDisposable disposable)
+                if (this.trackers[i] is IDisposable disposable)
                     disposable.Dispose();
             }
             
-            this._trackers.Clear();
+            this.trackers.Clear();
         }
 
         private void ReleaseUnmanagedResources()
@@ -99,7 +100,7 @@ namespace MBDK.Tracking.Manager
 
         protected virtual void Dispose(bool disposing)
         {
-            if (this._isDisposed)
+            if (this.isDisposed)
                 return;
             
             if (disposing)
@@ -107,7 +108,7 @@ namespace MBDK.Tracking.Manager
                 ReleaseUnmanagedResources();
             }
             
-            this._isDisposed = true;
+            this.isDisposed = true;
         }
 
         public void Dispose()

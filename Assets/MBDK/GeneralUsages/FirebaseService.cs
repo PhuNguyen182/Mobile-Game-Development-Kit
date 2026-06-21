@@ -1,10 +1,8 @@
 using System;
-using System.Threading.Tasks;
 using Firebase;
 using Firebase.Analytics;
 using Firebase.Extensions;
 using Firebase.Messaging;
-using Firebase.RemoteConfig;
 using Firebase.Crashlytics;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -13,10 +11,10 @@ namespace MBDK.GeneralUsages
 {
     public class FirebaseService
     {
-        private bool _isInitialized;
-        private FirebaseApp _firebaseApp;
+        private bool isInitialized;
+        private FirebaseApp firebaseApp;
         
-        public bool IsFirebaseInitialized => this._isInitialized;
+        public bool IsFirebaseInitialized => this.isInitialized;
         public FirebaseRemoteConfigService FirebaseRemoteConfigService { get; private set; }
 
         public async UniTask InitializeFirebase()
@@ -28,22 +26,22 @@ namespace MBDK.GeneralUsages
                     var dependencyStatus = task.Result;
                     if (dependencyStatus == DependencyStatus.Available)
                     {
-                        this._firebaseApp = FirebaseApp.DefaultInstance;
+                        this.firebaseApp = FirebaseApp.DefaultInstance;
                         Debug.Log($"Firebase initialized successfully!\n" +
-                                  $"Firebase app name: {this._firebaseApp.Name} with option: {this._firebaseApp.Options}");
+                                  $"Firebase app name: {this.firebaseApp.Name} with option: {this.firebaseApp.Options}");
                         this.InitializeServices().Forget();
                     }
                     else
                     {
                         Debug.LogError($"Could not resolve all Firebase dependencies: {dependencyStatus}");
-                        this._isInitialized = false;
+                        this.isInitialized = false;
                     }
                 });
             }
             catch (Exception ex)
             {
                 Debug.LogError($"Firebase initialization failed: {ex.Message}");
-                this._isInitialized = false;
+                this.isInitialized = false;
             }
         }
 
@@ -53,7 +51,7 @@ namespace MBDK.GeneralUsages
             await this.InitializeRemoteConfig();
             this.InitializeCloudMessaging();
             this.InitializeCrashlytics();
-            this._isInitialized = true;
+            this.isInitialized = true;
         }
 
         #region Firebase Analytics
@@ -130,7 +128,7 @@ namespace MBDK.GeneralUsages
         #region Firebase Crashlytics
         private void InitializeCrashlytics()
         {
-            Crashlytics.ReportUncaughtExceptionsAsFatal = true;
+            Crashlytics.ReportUncaughtExceptionsAsFatal = false;
             Debug.Log($"Firebase Crashlytics Initialized successfully with ReportUncaughtExceptionsAsFatal set to True!");
         }
         #endregion
